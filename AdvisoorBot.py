@@ -81,11 +81,11 @@ async def main():
                     f"⚠️ Advisoor Transaction ⚠️\n\n"
                     f"Token Name: {transaction['tokenName']}\n"
                     f"Token Symbol: {transaction['symbol']}\n\n"
-                    f"Contract Address: {transaction['tokenAddress']}\n"
-                    f"Wallet Address: {transaction['owner']}\n"
+                    f"Contract Address: {transaction['tokenAddress']}\n\n"
+                    f"Wallet Address: {transaction['owner']}\n\n"
                     f"Signature: {transaction['signature']}\n\n"
-                    f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>View on DexScreener</a>\n"
-                    f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now on Jupiter</a>\n"
+                    f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>View on DexScreener</a>\n"
+                    f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n"
                 )
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 print(f"Random image path: {image_path}")
