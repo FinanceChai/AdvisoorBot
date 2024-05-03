@@ -18,7 +18,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('Target_Address').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
-IMAGE_DIRECTORY = r'C:\\Users\\daniy\\Desktop\\All\\Images\\$RIA\\Memes'
+IMAGE_DIRECTORY = 'root/main/memes'
 
 async def initialize_signatures(bot, addresses):
     last_signatures = set()
