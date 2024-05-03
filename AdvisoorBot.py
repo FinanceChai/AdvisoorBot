@@ -116,7 +116,7 @@ async def main():
                     f"Token Symbol: {symbol}\n\n"
                     f"Contract Address: <a href='https://solscan.io/token/{contract_address}'>{contract_address}</a>\n"
                     f"Wallet Address: <a href='https://solscan.io/account/{wallet_address}'>{wallet_address}</a>\n"
-                    f"Signature: <a href='https://solscan.io/tx/{signature}'>{signature}</a>\n\n"
+                    f"Signature: <a href='https://solscan.io/tx/{signature[0]}'>{signature[0]}</a>\n\n"
                     f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{contract_address}'>View Pair</a>\n\n"
                     f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
                 )
@@ -128,7 +128,7 @@ async def main():
 
 async def send_telegram_message(bot, chat_id, message):
     """Send a message to a Telegram chat."""
-    await bot.send_message(chat_id=chat_id, text=message)
+    await bot.send_message(chat_id=chat_id, text=message, disable_web_page_preview=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
