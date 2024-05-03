@@ -18,7 +18,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
-IMAGE_DIRECTORY = 'root/main/advisoorbot/memes/'
+IMAGE_DIRECTORY = 'root/main/AdvisoorBot/memes'
 
 def get_random_image_path(directory):
     """Return a random image path from the specified directory."""
