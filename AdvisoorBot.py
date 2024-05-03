@@ -16,13 +16,16 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
-TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS').split(',')
+TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
-IMAGE_DIRECTORY = 'root/main/AdvisoorBot/memes'
+IMAGE_DIRECTORY = os.path.abspath('/root/main/AdvisoorBot/memes')
 
 def get_random_image_path(directory):
     """Return a random image path from the specified directory."""
-    images = os.listdir(directory)
+    if not os.path.exists(directory):
+        print(f"Directory does not exist: {directory}")
+        return None
+    images = [file for file in os.listdir(directory) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
     if images:
         return os.path.join(directory, random.choice(images))
     return None
@@ -36,13 +39,12 @@ async def initialize_signatures(bot, addresses):
         response = requests.get(url, params=params, headers=headers)
         if response.status_code == 200:
             data = response.json()
-            if data and 'data' in data:
-                for transaction in data['data']:
-                    signature = transaction.get('signature', '')
-                    if isinstance(signature, list):
-                        signature = signature[0] if signature else ''
-                    if signature:
-                        last_signatures.add(signature)
+            for transaction in data.get('data', []):
+                signature = transaction.get('signature', '')
+                if isinstance(signature, list):
+                    signature = signature[0] if signature else ''
+                if signature:
+                    last_signatures.add(signature)
     return last_signatures
 
 async def fetch_last_spl_transactions(address, last_signatures):
@@ -53,14 +55,13 @@ async def fetch_last_spl_transactions(address, last_signatures):
     new_transactions = []
     if response.status_code == 200:
         data = response.json()
-        if data and 'data' in data:
-            for transaction in data['data']:
-                signature = transaction.get('signature', '')
-                if isinstance(signature, list):
-                    signature = signature[0] if signature else ''
-                if signature and signature not in last_signatures:
-                    new_transactions.append(transaction)
-                    last_signatures.add(signature)
+        for transaction in data.get('data', []):
+            signature = transaction.get('signature', '')
+            if isinstance(signature, list):
+                signature = signature[0] if signature else ''
+            if signature and signature not in last_signatures:
+                new_transactions.append(transaction)
+                last_signatures.add(signature)
     return new_transactions
 
 async def send_telegram_message(bot, chat_id, message):
@@ -89,7 +90,7 @@ async def main():
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 print(f"Random image path: {image_path}")
                 await send_telegram_message(bot, CHAT_ID, message)
-        await asyncio.sleep(60)
+        await asyncio.sleep(60)  # Run this loop every minute
 
 if __name__ == "__main__":
     asyncio.run(main())
