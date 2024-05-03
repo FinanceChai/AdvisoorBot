@@ -114,11 +114,11 @@ async def main():
                     f"⚠️ Advisoor Transaction ⚠️\n\n"
                     f"Token Name: {token_name}\n"
                     f"Token Symbol: {symbol}\n\n"
-                    [Contract Address](https://solscan.io/token/1HHKuLTxYHVM4XZdLEt2ZVZYQsVXmtYsTF4JAv6wnhA)
-                    [Wallet Address](https://solscan.io/account/FgKRR7o92EMnQLuD6XNuKKyyMs5a9K1UbvfP1VfQYhR3)
-                    [Signature](https://solscan.io/tx/2k6Y3HsCz9TZu7hCDusWGN4sABQu3MFNeihdmyiMontyDSWAc1oTcmEsErpoogNemVPsPPg3CvnXfjGZTxDMUSfw)
-                    [DexScreener](https://www.dextools.io/app/en/solana/pair-explorer/1HHKuLTxYHVM4XZdLEt2ZVZYQsVXmtYsTF4JAv6wnhA)
-                    [Buy on Jupiter](https://jup.ag/swap?inputMint=SOL&outputMint=1HHKuLTxYHVM4XZdLEt2ZVZYQsVXmtYsTF4JAv6wnhA&amount=100000000&slippageBps=50&platformFeeBps=20&referral=None)
+                    f"[Contract Address](https://solscan.io/token/{contract_address})\n"
+                    f"[Wallet Address](https://solscan.io/account/{wallet_address})\n"
+                    f"[Signature](https://solscan.io/tx/{signature})\n"
+                    f"[DexScreener](https://www.dextools.io/app/en/solana/pair-explorer/{contract_address})\n"
+                    f"[Buy on Jupiter](https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY})\n"
                 )
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 # Assuming this is for demonstration purposes, as the function isn't defined
