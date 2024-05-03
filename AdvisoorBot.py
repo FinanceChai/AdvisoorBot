@@ -121,24 +121,5 @@ async def main():
                 await send_telegram_message(bot, CHAT_ID, message, image_path)
         await asyncio.sleep(60)  # Check every minute
 
-async def send_telegram_message(bot, chat_id, message):
-    """Send a message to a Telegram chat."""
-    await bot.send_message(chat_id=chat_id, text=message)
-
-async def send_telegram_group_message(bot, chat_id, message):
-    """Send a message to a Telegram group."""
-    await bot.send_message(chat_id=chat_id, text=message)
-
-async def main():
-    bot = Bot(token=TELEGRAM_TOKEN)
-
-    # Send a message to the individual chat
-    individual_message = "Hello from the bot!"
-    await send_telegram_message(bot, CHAT_ID, individual_message)
-
-    # Send a message to the group chat
-    group_message = "THIS WORKS"
-    await send_telegram_group_message(bot, CHAT_ID, group_message)
-
 if __name__ == "__main__":
     asyncio.run(main())
