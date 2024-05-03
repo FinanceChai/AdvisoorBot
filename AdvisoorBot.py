@@ -132,7 +132,7 @@ def main():
 
     # Send a message to the group chat
     group_message = "THIS WORKS"
-    send_telegram_group_message(bot, GROUP_CHAT_ID, group_message)
+    send_telegram_group_message(bot, CHAT_ID, group_message)
 
 if __name__ == "__main__":
     asyncio.run(main())
