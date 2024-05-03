@@ -10,7 +10,6 @@ from urllib.parse import quote
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-env_path = r'C:\\Users\\daniy\\Desktop\\Python shit\\SolanaApp\\AdvisoorBot.env'
 load_dotenv()
 
 # Retrieve environment variables
