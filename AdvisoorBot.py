@@ -127,8 +127,8 @@ async def main():
         await asyncio.sleep(60)  # Check every minute
 
 async def send_telegram_message(bot, chat_id, message):
-    """Send a message to a Telegram chat."""
-    await bot.send_message(chat_id=chat_id, text=message, disable_web_page_preview=True)
+    """Send a message to a Telegram chat using Markdown formatting."""
+    await bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
