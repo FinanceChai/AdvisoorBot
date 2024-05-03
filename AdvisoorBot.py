@@ -88,6 +88,7 @@ async def fetch_last_spl_transactions(address, last_signatures):
                     last_signatures.add(signature)
     return new_transactions
 
+
 async def main():
     print(f"TELEGRAM_TOKEN: {TELEGRAM_TOKEN}")
     print(f"CHAT_ID: {CHAT_ID}")
@@ -116,7 +117,7 @@ async def main():
                     f"Token Symbol: {symbol}\n\n"
                     f"[Contract Address](https://solscan.io/token/{contract_address})\n"
                     f"[Wallet Address](https://solscan.io/account/{wallet_address})\n"
-                    f"[Signature](https://solscan.io/tx/{signature})\n"
+                    f"[Signature](https://solscan.io/tx/{signature})\n"  # Make sure 'signature' is correctly formatted
                     f"[DexScreener](https://www.dextools.io/app/en/solana/pair-explorer/{contract_address})\n"
                     f"[Buy on Jupiter](https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY})\n"
                 )
