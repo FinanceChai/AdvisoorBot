@@ -86,6 +86,12 @@ async def fetch_last_spl_transactions(address, last_signatures):
 
 
 async def main():
+    print(f"TELEGRAM_TOKEN: {TELEGRAM_TOKEN}")
+    print(f"CHAT_ID: {CHAT_ID}")
+    print(f"SOLSCAN_API_KEY: {SOLSCAN_API_KEY}")
+    print(f"TARGET_ADDRESSES: {TARGET_ADDRESSES}")
+    print(f"JUPITER_REFERRAL_KEY: {JUPITER_REFERRAL_KEY}")
+    
     bot = Bot(token=TELEGRAM_TOKEN)
     last_signatures = await initialize_signatures(bot, TARGET_ADDRESSES)
     excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH"}
