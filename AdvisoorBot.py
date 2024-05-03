@@ -87,9 +87,6 @@ async def main():
                     f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>View on DexScreener</a>\n"
                     f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n"
                 )
-                image_path = get_random_image_path(IMAGE_DIRECTORY)
-                print(f"Random image path: {image_path}")
-                await send_telegram_message(bot, CHAT_ID, message)
         await asyncio.sleep(60)  # Run this loop every minute
 
 if __name__ == "__main__":
