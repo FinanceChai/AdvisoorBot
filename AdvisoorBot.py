@@ -59,7 +59,7 @@ async def fetch_last_spl_transactions(address, last_signatures):
     try:
         params = {'account': address, 'limit': 5, 'offset': 0}
         headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
-        url = 'https://pro-api.solscan.io/v1.0/account/splTransfers
+        url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'  # Corrected the URL closing quote
         response = requests.get(url, params=params, headers=headers)
         new_transactions = []
         if response.status_code == 200:
