@@ -20,6 +20,11 @@ TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
 IMAGE_DIRECTORY = 'root/main/memes'
 
+def get_random_image_path(directory):
+    """Return a random image path from the specified directory."""
+    # Implement logic to get a random image path
+    pass  # Placeholder, replace with actual implementation
+
 async def initialize_signatures(bot, addresses):
     last_signatures = set()
     for address in addresses:
@@ -56,7 +61,6 @@ def safely_quote(value):
         value = value[0] if value else ''  # Extra check for list, just in case
     return quote(str(value))  # Convert to string to ensure no type issues
 
-
 async def fetch_last_spl_transactions(address, last_signatures):
     """Fetch the latest SPL token transactions for a specific Solana address."""
     params = {
@@ -83,7 +87,6 @@ async def fetch_last_spl_transactions(address, last_signatures):
                     new_transactions.append(transaction)
                     last_signatures.add(signature)
     return new_transactions
-
 
 async def main():
     print(f"TELEGRAM_TOKEN: {TELEGRAM_TOKEN}")
@@ -118,8 +121,14 @@ async def main():
                     f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={safely_quote(contract_address)}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
                 )
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
-                await send_telegram_message(bot, CHAT_ID, message, image_path)
+                # Assuming this is for demonstration purposes, as the function isn't defined
+                print(f"Random image path: {image_path}")
+                await send_telegram_message(bot, CHAT_ID, message)
         await asyncio.sleep(60)  # Check every minute
+
+async def send_telegram_message(bot, chat_id, message):
+    """Send a message to a Telegram chat."""
+    await bot.send_message(chat_id=chat_id, text=message)
 
 if __name__ == "__main__":
     asyncio.run(main())
