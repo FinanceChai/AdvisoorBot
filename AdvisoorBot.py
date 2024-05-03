@@ -10,9 +10,8 @@ from urllib.parse import quote
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# Load environment variables from .env file
 env_path = r'C:\\Users\\daniy\\Desktop\\Python shit\\SolanaApp\\AdvisoorBot.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv()
 
 # Retrieve environment variables
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
