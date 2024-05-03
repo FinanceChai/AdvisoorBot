@@ -110,16 +110,16 @@ async def main():
                 contract_address = transaction.get('tokenAddress')
                 wallet_address = transaction.get('owner')
                 signature = transaction.get('signature')
-                    message = (
-                        f"⚠️ Advisoor Transaction ⚠️\n\n"
-                        f"Token Name: {token_name}\n"
-                        f"Token Symbol: {symbol}\n\n"
-                        f"Contract Address: <a href='https://solscan.io/token/{contract_address}'>{contract_address}</a>\n"
-                        f"Wallet Address: <a href='https://solscan.io/account/{wallet_address}'>{wallet_address}</a>\n"
-                        f"Signature: <a href='https://solscan.io/tx/{signature}'>{signature}</a>\n\n"
-                        f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{contract_address}'>View Pair</a>\n\n"
-                        f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
-                    )
+                message = (
+                    f"⚠️ Advisoor Transaction ⚠️\n\n"
+                    f"Token Name: {token_name}\n"
+                    f"Token Symbol: {symbol}\n\n"
+                    f"Contract Address: <a href='https://solscan.io/token/{contract_address}'>{contract_address}</a>\n"
+                    f"Wallet Address: <a href='https://solscan.io/account/{wallet_address}'>{wallet_address}</a>\n"
+                    f"Signature: <a href='https://solscan.io/tx/{signature}'>{signature}</a>\n\n"
+                    f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{contract_address}'>View Pair</a>\n\n"
+                    f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
+                )
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 # Assuming this is for demonstration purposes, as the function isn't defined
                 print(f"Random image path: {image_path}")
