@@ -114,11 +114,11 @@ async def main():
                     f"⚠️ Advisoor Transaction ⚠️\n\n"
                     f"Token Name: {token_name}\n"
                     f"Token Symbol: {symbol}\n\n"
-                    f"Contract Address: https://solscan.io/token/{contract_address}\n"
-                    f"Wallet Address: https://solscan.io/account/{wallet_address}\n"
-                    f"Signature: https://solscan.io/tx/{signature}\n\n"
-                    f"DexScreener: https://www.dextools.io/app/en/solana/pair-explorer/{contract_address}\n\n"
-                    f"Buy on Jupiter: https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}\n\n"
+                    f"[Contract Address](https://solscan.io/token/{contract_address})\n"
+                    f"[Wallet Address](https://solscan.io/account/{wallet_address})\n"
+                    f"[Signature](https://solscan.io/tx/{signature})\n\n"
+                    f"[DexScreener](https://www.dextools.io/app/en/solana/pair-explorer/{contract_address})\n\n"
+                    f"[Buy on Jupiter](https://jup.ag/swap?inputMint=SOL&outputMint={contract_address}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY})\n\n"
                 )
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 # Assuming this is for demonstration purposes, as the function isn't defined
