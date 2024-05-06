@@ -36,9 +36,8 @@ async def main():
                     f"⚠️ Advisoor Transaction ⚠️\n\n"
                     f"Token Name: {token_name}\n"
                     f"Token Symbol: {symbol}\n\n"
-                    f"Contract Address: <a href='https://solscan.io/token/{safely_quote(contract_address)}'>{contract_address}</a>\n"
-                    f"Wallet Address: <a href='https://solscan.io/account/{safely_quote(wallet_address)}'>{wallet_address}</a>\n"
-                    f"Signature: <a href='https://solscan.io/tx/{safely_quote(signature)}'>{signature}</a>\n\n"
+                    f"Contract Address: <a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
+                    f"Wallet Address: <a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Wallet</a>\n"
                     f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair</a>\n\n"
                     f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={safely_quote(contract_address)}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
                 )
