@@ -3,13 +3,8 @@ import asyncio
 import random
 import requests
 from telegram import Bot
-from telegram.ext import Updater, CommandHandler, CallbackContext
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote  # Import quote function for URL encoding
-
-# Set the event loop policy to prevent issues on Windows environments
-if os.name == 'nt':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 load_dotenv()
 
@@ -23,9 +18,9 @@ IMAGE_DIRECTORY = os.path.abspath('/root/main/AdvisoorBot/memes')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    last_signatures = await initialize_signatures(TARGET_ADDRESSES)
     excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH"}
     while True:
+        last_signatures = await initialize_signatures(TARGET_ADDRESSES)
         for address in TARGET_ADDRESSES:
             new_transactions = await fetch_last_spl_transactions(address, last_signatures)
             for transaction in new_transactions:
@@ -117,3 +112,6 @@ def get_random_image_path(directory):
 
 def safely_quote(s):
     """Safely quote a string for URL."""
+
+if __name__ == "__main__":
+    asyncio.run(main())
