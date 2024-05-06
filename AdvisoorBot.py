@@ -6,6 +6,7 @@ from telegram import Bot
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote  # Import quote function for URL encoding
 
+# Load environment variables from .env file
 load_dotenv()
 
 # Retrieve environment variables
