@@ -95,7 +95,15 @@ def button_handler(update: Update, context: CallbackContext):
 def main():
     """Main function to initialize the bot and handle polling."""
     bot = Bot(token=TELEGRAM_TOKEN)
-    updater = Updater(bot=bot, update_queue=True)
+    updater = Updater(bot=bot, use_context=True)
+
+    # Register handlers
+    updater.dispatcher.add_handler(CommandHandler('start', start))
+    updater.dispatcher.add_handler(CallbackQueryHandler(button_handler))
+
+    # Start the bot
+    updater.start_polling()
+    updater.idle()  # This will keep the bot running until manually stopped
 
 if __name__ == '__main__':
     main()
