@@ -3,6 +3,8 @@ import asyncio
 import random
 import requests
 from telegram import Bot
+from telegram import inlinekeyboardbutton, inlinekeyboardmarkup
+from telegram.ext import updater, commandhandler, callbackqueryhandler
 from dotenv import load_dotenv
 from urllib.parse import quote
 
@@ -98,11 +100,10 @@ async def main():
                     f"⚠️ Advisoor Transaction ⚠️\n\n"
                     f"Token Name: {transaction['tokenName']}\n"
                     f"Token Symbol: {transaction['symbol']}\n\n"
-                    f"Contract Address: {transaction['tokenAddress']}\n\n"
-                    f"Wallet Address: {transaction['owner']}\n\n"
-                    f"Signature: {transaction['signature']}\n\n"
-                    f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>View on DexScreener</a>\n"
-                    f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n"
+                    f"CA: {transaction['tokenAddress']}\n"
+                    f"Wallet: {transaction['owner']}\n\n"
+                    f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>Go To DexScreener</a>\n"
+                    f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n"
                 )
                 await send_telegram_message(bot, CHAT_ID, message)
         await asyncio.sleep(60)  # Run this loop every minute
