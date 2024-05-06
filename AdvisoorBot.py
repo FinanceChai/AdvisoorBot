@@ -2,7 +2,7 @@ import os
 import asyncio
 import random
 import requests
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Bot
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
 from dotenv import load_dotenv
 
