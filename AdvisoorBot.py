@@ -3,7 +3,7 @@ import asyncio
 import random
 import requests
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
 from dotenv import load_dotenv
 
 # Set the event loop policy to prevent issues on Windows environments
@@ -33,7 +33,7 @@ def get_random_image_path(directory):
         print(f"Error accessing directory: {e}")
     return None
 
-async def initialize_signatures(addresses):
+def initialize_signatures(addresses):
     """Initialize and return the set of last known signatures."""
     last_signatures = set()
     for address in addresses:
@@ -54,14 +54,14 @@ async def initialize_signatures(addresses):
             print(f"Failed to fetch signatures for {address}: {e}")
     return last_signatures
 
-async def fetch_last_spl_transactions(address, last_signatures):
+def fetch_last_spl_transactions(address, last_signatures):
     """Fetch the latest SPL token transactions for a specific Solana address."""
+    new_transactions = []
     try:
         params = {'account': address, 'limit': 5, 'offset': 0}
         headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
-        url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'  # Corrected the URL closing quote
+        url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
         response = requests.get(url, params=params, headers=headers)
-        new_transactions = []
         if response.status_code == 200:
             data = response.json()
             for transaction in data.get('data', []):
@@ -71,8 +71,6 @@ async def fetch_last_spl_transactions(address, last_signatures):
                 if signature and signature not in last_signatures:
                     new_transactions.append(transaction)
                     last_signatures.add(signature)
-        else:
-            print(f"Error fetching transactions for {address}: HTTP {response.status_code}")
     except requests.RequestException as e:
         print(f"Network error when fetching transactions for {address}: {e}")
     return new_transactions
@@ -96,28 +94,24 @@ async def send_telegram_message(bot, chat_id, transaction):
     except Exception as e:
         print(f"Failed to send message: {e}")
 
-async def button_handler(update: Update, context: CallbackContext):
+def button_handler(update: Update, context: CallbackContext):
     """Handle button presses."""
     query = update.callback_query
-    await query.answer()
+    query.answer()
     data = query.data
     # Extract the type and address from callback_data
     if data.startswith('CA_'):
         address = data[3:]
-        await query.bot.send_message(chat_id=query.message.chat_id, text=f"Contract Address: {address}")
+        context.bot.send_message(chat_id=query.message.chat_id, text=f"Contract Address: {address}")
     elif data.startswith('Wallet_'):
         address = data[7:]
-        await query.bot.send_message(chat_id=query.message.chat_id, text=f"Wallet Address: {address}")
+        context.bot.send_message(chat_id=query.message.chat_id, text=f"Wallet Address: {address}")
 
 def main():
-    bot = Bot(token=TELEGRAM_TOKEN)
-    updater = Updater(bot=bot, use_context=True)
-    
-    # Retrieve existing signatures
-    last_signatures = asyncio.run(initialize_signatures(TARGET_ADDRESSES))
-    
+    updater = Updater(token=TELEGRAM_TOKEN)
+
     # Handler setup
-    updater.dispatcher.add_handler(CommandHandler('start', start))  # Assuming a start function exists
+    updater.dispatcher.add_handler(CommandHandler('start', start))  # start function must be defined
     updater.dispatcher.add_handler(CallbackQueryHandler(button_handler))
 
     # Start polling
@@ -125,4 +119,4 @@ def main():
     updater.idle()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
