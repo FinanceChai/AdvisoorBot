@@ -2,11 +2,9 @@ import os
 import asyncio
 import random
 import requests
-from telegram import Bot
-from telegram import inlinekeyboardbutton, inlinekeyboardmarkup
-from telegram.ext import updater, commandhandler, callbackqueryhandler
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from dotenv import load_dotenv
-from urllib.parse import quote
 
 # Set the event loop policy to prevent issues on Windows environments
 if os.name == 'nt':
@@ -79,10 +77,22 @@ async def fetch_last_spl_transactions(address, last_signatures):
         print(f"Network error when fetching transactions for {address}: {e}")
     return new_transactions
 
-async def send_telegram_message(bot, chat_id, message):
-    """Send a message to a Telegram chat."""
+async def send_telegram_message(bot, chat_id, transaction):
+    """Send a message with inline buttons to a Telegram chat."""
+    message_text = (
+        f"⚠️ Advisoor Transaction ⚠️\n\n"
+        f"Token Name: {transaction['tokenName']}\n"
+        f"Token Symbol: {transaction['symbol']}\n\n"
+        f"Contract Address: {transaction['tokenAddress']}\n"
+        f"Wallet Address: {transaction['owner']}\n\n"
+    )
+    keyboard = [
+        [InlineKeyboardButton("Contract Address", callback_data=f"CA_{transaction['tokenAddress']}")],
+        [InlineKeyboardButton("Wallet Address", callback_data=f"Wallet_{transaction['owner']}")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     try:
-        await bot.send_message(chat_id=chat_id, text=message, parse_mode='HTML', disable_web_page_preview=True)
+        await bot.send_message(chat_id=chat_id, text=message_text, reply_markup=reply_markup, parse_mode='HTML', disable_web_page_preview=True)
     except Exception as e:
         print(f"Failed to send message: {e}")
 
@@ -96,16 +106,7 @@ async def main():
             for transaction in new_transactions:
                 if transaction.get('symbol') in excluded_symbols:
                     continue
-                message = (
-                    f"⚠️ Advisoor Transaction ⚠️\n\n"
-                    f"Token Name: {transaction['tokenName']}\n"
-                    f"Token Symbol: {transaction['symbol']}\n\n"
-                    f"CA: {transaction['tokenAddress']}\n"
-                    f"Wallet: {transaction['owner']}\n\n"
-                    f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{transaction['tokenAddress']}'>Go To DexScreener</a>\n"
-                    f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={transaction['tokenAddress']}&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n"
-                )
-                await send_telegram_message(bot, CHAT_ID, message)
+                await send_telegram_message(bot, CHAT_ID, transaction)
         await asyncio.sleep(60)  # Run this loop every minute
 
 if __name__ == "__main__":
