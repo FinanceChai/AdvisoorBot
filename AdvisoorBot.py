@@ -3,7 +3,7 @@ import asyncio
 import random
 import requests
 from telegram import Bot
-from telegram.ext import Updater, Update, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote  # Import quote function for URL encoding
 
