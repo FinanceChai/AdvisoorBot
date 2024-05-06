@@ -94,6 +94,8 @@ def button_handler(update: Update, context: CallbackContext):
 
 def main():
     """Main function to initialize the bot and handle polling."""
+    load_dotenv()
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
     bot = Bot(token=TELEGRAM_TOKEN, use_context=True)
     updater = Updater(bot=bot)
 
