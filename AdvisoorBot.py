@@ -95,7 +95,7 @@ def button_handler(update: Update, context: CallbackContext):
 def main():
     """Main function to initialize the bot and handle polling."""
     bot = Bot(token=TELEGRAM_TOKEN)
-    updater = Updater(bot=bot, use_context=True)
+    updater = Updater(bot=bot)
     
     # Adding command and callback query handlers
     updater.dispatcher.add_handler(CommandHandler('start', start))
