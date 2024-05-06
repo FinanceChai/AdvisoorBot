@@ -97,10 +97,6 @@ def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     updater = Updater(bot=bot, update_queue=True)
     
-    # Adding command and callback query handlers
-    updater.add_handler(CommandHandler('start', start))
-    updater.add_handler(CallbackQueryHandler(button_handler))
-
     # Start the bot
     updater.start_polling()
     updater.idle()
