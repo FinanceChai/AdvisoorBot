@@ -96,10 +96,6 @@ def main():
     """Main function to initialize the bot and handle polling."""
     bot = Bot(token=TELEGRAM_TOKEN)
     updater = Updater(bot=bot, update_queue=True)
-    
-    # Start the bot
-    updater.start_polling()
-    updater.idle()
 
 if __name__ == '__main__':
     main()
