@@ -83,12 +83,12 @@ async def send_telegram_message(bot, chat_id, transaction):
         f"⚠️ Advisoor Transaction ⚠️\n\n"
         f"Token Name: {transaction['tokenName']}\n"
         f"Token Symbol: {transaction['symbol']}\n\n"
-        f"Contract Address: {transaction['tokenAddress']}\n"
-        f"Wallet Address: {transaction['owner']}\n\n"
+        f"CA: {transaction['tokenAddress']}\n"
+        f"Wallet: {transaction['owner']}\n\n"
     )
     keyboard = [
-        [InlineKeyboardButton("Contract Address", callback_data=f"CA_{transaction['tokenAddress']}")],
-        [InlineKeyboardButton("Wallet Address", callback_data=f"Wallet_{transaction['owner']}")]
+        [InlineKeyboardButton("Copy CA", callback_data=f"CA_{transaction['tokenAddress']}")],
+        [InlineKeyboardButton("Copy Wallet", callback_data=f"Wallet_{transaction['owner']}")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     try:
@@ -96,18 +96,33 @@ async def send_telegram_message(bot, chat_id, transaction):
     except Exception as e:
         print(f"Failed to send message: {e}")
 
-async def main():
-    bot = Bot(token=TELEGRAM_TOKEN)
-    last_signatures = await initialize_signatures(TARGET_ADDRESSES)
-    excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH"}
-    while True:
-        for address in TARGET_ADDRESSES:
-            new_transactions = await fetch_last_spl_transactions(address, last_signatures)
-            for transaction in new_transactions:
-                if transaction.get('symbol') in excluded_symbols:
-                    continue
-                await send_telegram_message(bot, CHAT_ID, transaction)
-        await asyncio.sleep(60)  # Run this loop every minute
+async def button_handler(update: Update, context: CallbackContext):
+    """Handle button presses."""
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+    # Extract the type and address from callback_data
+    if data.startswith('CA_'):
+        address = data[3:]
+        await query.bot.send_message(chat_id=query.message.chat_id, text=f"Contract Address: {address}")
+    elif data.startswith('Wallet_'):
+        address = data[7:]
+        await query.bot.send_message(chat_id=query.message.chat_id, text=f"Wallet Address: {address}")
 
-if __name__ == "__main__":
+def main():
+    bot = Bot(token=TELEGRAM_TOKEN)
+    updater = Updater(bot=bot, use_context=True)
+    
+    # Retrieve existing signatures
+    last_signatures = asyncio.run(initialize_signatures(TARGET_ADDRESSES))
+    
+    # Handler setup
+    updater.dispatcher.add_handler(CommandHandler('start', start))  # Assuming a start function exists
+    updater.dispatcher.add_handler(CallbackQueryHandler(button_handler))
+
+    # Start polling
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
     asyncio.run(main())
