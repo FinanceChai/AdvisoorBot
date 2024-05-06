@@ -103,10 +103,6 @@ async def send_telegram_message(bot, chat_id, message, image_path):
     except Exception as e:
         print(f"Failed to send message: {e}")
 
-def start(update: Update, context: CallbackContext):
-    """Handle the /start command."""
-    update.message.reply_text("Welcome to the Advisoor Bot!")
-
 def get_random_image_path(directory):
     """Return a random image path from the specified directory."""
     try:
