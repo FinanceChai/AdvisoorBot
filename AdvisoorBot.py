@@ -19,7 +19,7 @@ IMAGE_DIRECTORY = os.path.abspath('/root/main/AdvisoorBot/memes')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH"}
+    excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH", "BONK"}
     while True:
         last_signatures = await initialize_signatures(TARGET_ADDRESSES)
         for address in TARGET_ADDRESSES:
