@@ -1,5 +1,4 @@
 import os
-import asyncio
 import random
 import requests
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -75,24 +74,9 @@ def fetch_last_spl_transactions(address, last_signatures):
         print(f"Network error when fetching transactions for {address}: {e}")
     return new_transactions
 
-async def send_telegram_message(bot, chat_id, transaction):
-    """Send a message with inline buttons to a Telegram chat."""
-    message_text = (
-        f"⚠️ Advisoor Transaction ⚠️\n\n"
-        f"Token Name: {transaction['tokenName']}\n"
-        f"Token Symbol: {transaction['symbol']}\n\n"
-        f"CA: {transaction['tokenAddress']}\n"
-        f"Wallet: {transaction['owner']}\n\n"
-    )
-    keyboard = [
-        [InlineKeyboardButton("Copy CA", callback_data=f"CA_{transaction['tokenAddress']}")],
-        [InlineKeyboardButton("Copy Wallet", callback_data=f"Wallet_{transaction['owner']}")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    try:
-        await bot.send_message(chat_id=chat_id, text=message_text, reply_markup=reply_markup, parse_mode='HTML', disable_web_page_preview=True)
-    except Exception as e:
-        print(f"Failed to send message: {e}")
+def start(update: Update, context: CallbackContext):
+    """Send a message when the command /start is issued."""
+    update.message.reply_text('Hello! Welcome to the bot.')
 
 def button_handler(update: Update, context: CallbackContext):
     """Handle button presses."""
@@ -108,13 +92,15 @@ def button_handler(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=query.message.chat_id, text=f"Wallet Address: {address}")
 
 def main():
-    updater = Updater(token=TELEGRAM_TOKEN)
-
-    # Handler setup
-    updater.dispatcher.add_handler(CommandHandler('start', start))  # start function must be defined
+    """Main function to initialize the bot and handle polling."""
+    bot = Bot(token=TELEGRAM_TOKEN)
+    updater = Updater(bot=bot)
+    
+    # Adding command and callback query handlers
+    updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CallbackQueryHandler(button_handler))
 
-    # Start polling
+    # Start the bot
     updater.start_polling()
     updater.idle()
 
