@@ -3,7 +3,7 @@ import asyncio
 import random
 import requests
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, filters
 from dotenv import load_dotenv
 
 # Set the event loop policy to prevent issues on Windows environments
