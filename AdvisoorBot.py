@@ -17,12 +17,17 @@ IMAGE_DIRECTORY = os.path.abspath('/root/main/advisoorbot/Memes')
 excluded_symbols = ["ETH", "SOL", "WAVAX", "WSOL", "BTC", "WBTC","BONK"]
 
 def get_random_image_path(image_directory):
-    """Returns a random image path from the specified directory."""
+    """Returns a random image path from the specified directory, creating the directory if it does not exist."""
+    if not os.path.exists(image_directory):
+        os.makedirs(image_directory, exist_ok=True)
+        return None  # Return None if the directory was just created and is empty
+    
     images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
     if images:
         return random.choice(images)
     else:
         return None
+
 
 
 async def main():
