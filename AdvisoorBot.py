@@ -37,7 +37,7 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
             # Open an image file
             with Image.open(image_path) as img:
                 # Resize the image using LANCZOS resampling method
-                img = img.resize((800, 600), Image.Resampling.LANCZOS)  # Resize to 800x600 or another dimension as needed
+                img = img.resize((200, 200), Image.Resampling.LANCZOS)  # Resize to 800x600 or another dimension as needed
                 # Save the resized image to a buffer
                 buf = io.BytesIO()
                 img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
