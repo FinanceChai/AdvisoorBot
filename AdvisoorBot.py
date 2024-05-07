@@ -69,10 +69,10 @@ async def process_transactions(transactions, bot):
             f"⚠️ Advisoor Transaction ⚠️\n\n"
             f"Token Name: {token_name}\n"
             f"Token Symbol: {symbol}\n\n"
-            f"Contract Address: <a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
-            f"Wallet Address: <a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Wallet</a>\n"
-            f"DexScreener: <a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair</a>\n\n"
-            f"Buy on Jupiter: <a href='https://jup.ag/swap?inputMint=SOL&outputMint={safely_quote(contract_address)}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Trade Now</a>\n\n"
+            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
+            f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
+            f"<a href='https://jup.ag/swap?inputMint=SOL&outputMint={safely_quote(contract_address)}&amount=100000000&slippageBps=50&platformFeeBps=20&referral={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n\n"
         )
         image_path = get_random_image_path(IMAGE_DIRECTORY)
         await send_telegram_message(bot, CHAT_ID, message, image_path)
