@@ -81,7 +81,7 @@ async def process_transactions(transactions, bot):
         contract_address = transaction.get('tokenAddress')
         wallet_address = transaction.get('owner')
         message = (
-            f"🎱 8 Ball Shakes 🎱\n\n"
+            f"Advisoor Notes 📝\n\n"
             f"Token Name: {token_name}\n"
             f"Token Symbol: {symbol}\n\n"
             f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>Contract Address</a>\n"
