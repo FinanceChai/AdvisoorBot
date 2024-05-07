@@ -29,12 +29,14 @@ def get_random_image_path(image_directory):
         return None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
-    """Sends a message to a Telegram chat, with an optional image."""
+    """Sends a message to a Telegram chat, with an optional image, and disables web page preview."""
     if image_path:
         with open(image_path, 'rb') as photo:
-            await bot.send_photo(chat_id=chat_id, photo=photo, caption=text, parse_mode='HTML')
+            # Send photo with caption and disable web page preview in caption
+            await bot.send_photo(chat_id=chat_id, photo=photo, caption=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
-        await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML')
+        # Send text only message with disabled web page preview
+        await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
