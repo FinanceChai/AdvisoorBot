@@ -13,7 +13,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
-IMAGE_DIRECTORY = os.path.abspath('/root/main/AdvisoorBot/memes')
+IMAGE_DIRECTORY = os.path.abspath('/root/main/advisoorbot/Memes')
 excluded_symbols = ["ETH", "SOL", "WAVAX", "WSOL", "BTC", "WBTC","BONK"]
 
 def get_random_image_path(image_directory):
