@@ -5,6 +5,7 @@ import requests
 from telegram import Bot, InputFile
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote
+from PIL import Image
 
 load_dotenv()
 
@@ -29,11 +30,24 @@ def get_random_image_path(image_directory):
         return None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
-    """Sends a message to a Telegram chat, with an optional image. Disables web page preview for text-only messages."""
+    """Sends a message to a Telegram chat, with an optional resized image. Disables web page preview for text-only messages."""
     if image_path:
-        with open(image_path, 'rb') as photo:
-            # Send photo with caption
-            await bot.send_photo(chat_id=chat_id, photo=photo, caption=text, parse_mode='HTML')
+        try:
+            # Open an image file
+            with Image.open(image_path) as img:
+                # Resize the image
+                img = img.resize((800, 600), Image.ANTIALIAS)  # Resize to 800x600 or any other dimension as needed
+                # Save the resized image to a buffer
+                buf = io.BytesIO()
+                img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
+                img.save(buf, format=img_format)
+                buf.seek(0)
+                # Send photo with caption
+                await bot.send_photo(chat_id=chat_id, photo=buf, caption=text, parse_mode='HTML')
+        except Exception as e:
+            print(f"Error resizing or sending image: {e}")
+            # Fallback: send text message if image processing fails
+            await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
         # Send text only message with disabled web page preview
         await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
