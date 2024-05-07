@@ -2,7 +2,7 @@ import os
 import asyncio
 import random
 import requests
-from telegram import Bot
+from telegram import Bot, InputFile
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote
 
@@ -28,7 +28,13 @@ def get_random_image_path(image_directory):
     else:
         return None
 
-
+async def send_telegram_message(bot, chat_id, text, image_path=None):
+    """Sends a message to a Telegram chat, with an optional image."""
+    if image_path:
+        with open(image_path, 'rb') as photo:
+            await bot.send_photo(chat_id=chat_id, photo=photo, caption=text, parse_mode='HTML')
+    else:
+        await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
