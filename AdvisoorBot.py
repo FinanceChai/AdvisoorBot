@@ -16,10 +16,11 @@ SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 JUPITER_REFERRAL_KEY = os.getenv('JUPITER_REFERRAL_KEY')
 IMAGE_DIRECTORY = os.path.abspath('/root/main/AdvisoorBot/memes')
+excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH", "BONK"}
+
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    excluded_symbols = {"WSOL", "SOL", "USDC", "WAVAX", "WBTC", "WETH", "ETH", "BONK"}
     last_signatures = {address: [] for address in TARGET_ADDRESSES}
 
     # Fetch the latest trades for each address and initialize the last signatures list
