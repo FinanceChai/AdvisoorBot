@@ -88,30 +88,3 @@ async def fetch_last_spl_transactions(address, last_signatures):
         print(f"Network error when fetching transactions for {address}: {e}")
     return new_transactions
 
-async def send_telegram_message(bot, chat_id, message, image_path):
-    """Send a message with inline buttons to a Telegram chat."""
-    try:
-        await bot.send_message(chat_id=chat_id, text=message, parse_mode='HTML', disable_web_page_preview=True)
-        if image_path:
-            with open(image_path, 'rb') as photo:
-                await bot.send_photo(chat_id=chat_id, photo=photo)
-    except Exception as e:
-        print(f"Failed to send message: {e}")
-
-def get_random_image_path(directory):
-    """Return a random image path from the specified directory."""
-    try:
-        images = [file for file in os.listdir(directory) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
-        if images:
-            return os.path.join(directory, random.choice(images))
-        print("No images found in the directory.")
-    except FileNotFoundError:
-        print(f"Directory does not exist: {directory}")
-    except Exception as e:
-        print(f"Error accessing directory: {e}")
-
-def safely_quote(s):
-    """Safely quote a string for URL."""
-
-if __name__ == "__main__":
-    asyncio.run(main())
