@@ -87,7 +87,7 @@ async def process_transactions(transactions, bot):
             f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
             f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
-            f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
+            f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}?ref={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n\n"
         )
         image_path = get_random_image_path(IMAGE_DIRECTORY)
         await send_telegram_message(bot, CHAT_ID, message, image_path)
