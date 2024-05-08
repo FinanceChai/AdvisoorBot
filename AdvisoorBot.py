@@ -75,11 +75,11 @@ async def create_message(session, transactions):
         owner_address = transaction.get('owner', 'Unknown')
         amount = transaction.get('amount', 'Unknown')  # Assuming 'amount' is the key for the token amount in the transaction data
         message_lines.append(
-            f"Token Name: {token_name}\n"
-            f"Token Symbol: {token_symbol}\n"
+            f"Name: {token_name}\n"
+            f"Symbol: {token_symbol}\n"
             f"Amount: {amount}\n"  # Display the amount of tokens transferred
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
+            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n"
         )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
