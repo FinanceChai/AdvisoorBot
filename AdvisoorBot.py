@@ -48,18 +48,17 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
 
 async def fetch_new_transactions(session, address, last_checked_id):
     transactions = []
-    url = f"https://api.solanabeach.io/v1/accounts/{address}/transactions?before={last_checked_id}&limit=1"
-    headers = {"Authorization": f"Bearer {SOLSCAN_API_KEY}"}
-    async with session.get(url, headers=headers) as response:
+    url = f"https://public-api.solscan.io/account/transactions?account={address}&before={last_checked_id}&limit=1"
+    async with session.get(url) as response:
         if response.status == 200:
             data = await response.json()
-            for result in data['transactions']:
+            for result in data:
                 transaction = {
-                    'id': result['txid'],
-                    'symbol': result['operation']['symbol'],
-                    'tokenName': result['operation']['tokenName'],
-                    'tokenAddress': result['operation']['tokenAddress'],
-                    'owner': result['operation']['owner']
+                    'id': result['txHash'],
+                    'symbol': result.get('tokenTransfers', [{}])[0].get('tokenSymbol', 'Unknown'),
+                    'tokenName': result.get('tokenTransfers', [{}])[0].get('tokenName', 'Unknown'),
+                    'tokenAddress': result.get('tokenTransfers', [{}])[0].get('contract', 'Unknown'),
+                    'owner': address
                 }
                 transactions.append(transaction)
     return transactions
