@@ -15,6 +15,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
+EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK", "WAVAX", "WETH", "WBTC"}  # Add or modify as necessary
 
 def get_random_image_path(image_directory):
     if not os.path.exists(image_directory):
@@ -66,8 +67,10 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
-        token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
         token_symbol = token_metadata.get('symbol', 'Unknown') if token_metadata else 'Unknown'
+        if token_symbol in EXCLUDED_SYMBOLS:
+            continue
+        token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
         message_lines.append(
@@ -76,7 +79,7 @@ async def create_message(session, transactions):
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
-    return '\n'.join(message_lines)
+    return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
@@ -99,8 +102,9 @@ async def main():
                     last_signature[address] = transaction['signature']
             if new_transactions:
                 message = await create_message(session, new_transactions)
-                image_path = get_random_image_path(IMAGE_DIRECTORY)
-                await send_telegram_message(bot, CHAT_ID, message, image_path)
+                if message:
+                    image_path = get_random_image_path(IMAGE_DIRECTORY)
+                    await send_telegram_message(bot, CHAT_ID, message, image_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
