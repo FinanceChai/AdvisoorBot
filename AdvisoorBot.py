@@ -42,6 +42,15 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
+async def fetch_token_metadata(session, token_address):
+    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
+    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            return data
+        return None
+
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
@@ -50,14 +59,15 @@ async def fetch_last_spl_transactions(session, address, last_signature):
         if response.status == 200:
             data = await response.json()
             if data.get('data') and data['data'][0]['signature'] != last_signature:
-                return data['data'][0]  # Return the most recent transaction if it's new
+                return data['data'][0]
     return None
 
-async def create_message(transactions):
+async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
-        token_symbol = transaction.get('tokenSymbol', 'Unknown')
-        token_name = transaction.get('tokenName', 'Unknown')
+        token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
+        token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
+        token_symbol = token_metadata.get('symbol', 'Unknown') if token_metadata else 'Unknown'
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
         message_lines.append(
@@ -88,7 +98,7 @@ async def main():
                     new_transactions.append(transaction)
                     last_signature[address] = transaction['signature']
             if new_transactions:
-                message = await create_message(new_transactions)
+                message = await create_message(session, new_transactions)
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 await send_telegram_message(bot, CHAT_ID, message, image_path)
 
