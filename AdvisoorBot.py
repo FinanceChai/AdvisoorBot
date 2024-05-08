@@ -84,7 +84,7 @@ async def create_message(session, transactions):
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
-            f"Market Cap: ${market_cap:,}\n"
+            f"Market Cap: ${market_cap}\n"
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
