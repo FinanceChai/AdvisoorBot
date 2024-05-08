@@ -9,14 +9,9 @@ load_dotenv()
 # Get the necessary API key and details from the environment
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 
-async def main():
-    # Hardcoded mint address
-    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
-    async with aiohttp.ClientSession() as session:
-        await fetch_market_cap(session, mint_address)
-
 async def fetch_market_cap(session, mint_address):
     url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={mint_address}&limit=1"
+    print(f"Fetching data from URL: {url}")  # Log the URL to verify it's correct
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
@@ -46,7 +41,10 @@ async def fetch_market_cap(session, mint_address):
         else:
             print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
 
-
+async def main():
+    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+    async with aiohttp.ClientSession() as session:
+        await fetch_market_cap(session, mint_address)
 
 if __name__ == "__main__":
     asyncio.run(main())
