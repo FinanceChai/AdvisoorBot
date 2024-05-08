@@ -44,17 +44,19 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}?limit=10&offset=0"
+    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=10&offset=0"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data:
-                market_cap = data.get('marketCapFD', 'Unknown')
-                return {
-                    'market_cap': market_cap
-                }
-        return {'market_cap': 'Unknown'}
+            market_cap = data.get('marketCapFD', 'Unknown')
+            return {
+                'market_cap': market_cap,
+                'token_name': data.get('name', 'Unknown'),  # Assuming name is provided in this endpoint
+                'token_symbol': data.get('symbol', 'Unknown')  # Assuming symbol is provided in this endpoint
+            }
+        return {'market_cap': 'Unknown', 'token_name': 'Unknown', 'token_symbol': 'Unknown'}
+
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
@@ -71,14 +73,18 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
+        token_name = token_metadata['token_name']
+        token_symbol = token_metadata['token_symbol']
         market_cap = token_metadata['market_cap']
-
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
+        
         message_lines.append(
+            f"Token Name: {token_name}\n"
+            f"Token Symbol: {token_symbol}\n"
             f"Token Address: {token_address}\n"
             f"Owner Address: {owner_address}\n"
-            f"Fully Diluted Market Cap: ${market_cap:,.2f}\n"
+            f"Mkt Cap: ${market_cap:,.2f}\n"
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
@@ -88,26 +94,16 @@ async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     last_signature = {address: None for address in TARGET_ADDRESSES}
     async with aiohttp.ClientSession() as session:
-        # Initial fetch of transactions and update last known signatures
-        for address in TARGET_ADDRESSES:
-            transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
-            if transaction:
-                last_signature[address] = transaction['signature']
-
-        # Continuous monitoring of new transactions every minute
         while True:
             await asyncio.sleep(60)  # Wait for a minute before checking new transactions
-            new_transactions = []
             for address in TARGET_ADDRESSES:
                 transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction:
-                    new_transactions.append(transaction)
                     last_signature[address] = transaction['signature']
-            if new_transactions:
-                message = await create_message(session, new_transactions)
-                if message:
-                    image_path = get_random_image_path(IMAGE_DIRECTORY)
-                    await send_telegram_message(bot, CHAT_ID, message, image_path)
+                    message = await create_message(session, [transaction])
+                    if message:
+                        image_path = get_random_image_path(IMAGE_DIRECTORY)
+                        await send_telegram_message(bot, CHAT_ID, message, image_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
