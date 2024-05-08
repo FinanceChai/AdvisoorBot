@@ -53,9 +53,18 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         # Send text only message with disabled web page preview
         await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
-        
+
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
+    
+    # Send initial message for each wallet address
+    initial_messages = []
+    for address in TARGET_ADDRESSES:
+        initial_transactions = await fetch_last_spl_transactions(address, limit=10)
+        message = await create_message(initial_transactions)
+        initial_messages.append(message)
+    await send_telegram_message(bot, CHAT_ID, "\n".join(initial_messages))
+    
     last_check_time = datetime.now() - timedelta(minutes=1)
     aggregated_transactions = []
 
@@ -72,7 +81,7 @@ async def main():
             last_check_time = current_time
         
         for address in TARGET_ADDRESSES:
-            new_transactions = await fetch_last_spl_transactions(address)
+            new_transactions = await fetch_last_spl_transactions(address, limit=10)
             aggregated_transactions.extend(new_transactions)
         
         await asyncio.sleep(10)  # Check every 10 seconds
@@ -97,11 +106,11 @@ async def create_message(transactions):
         )
     return '\n'.join(message_lines)
 
-async def fetch_last_spl_transactions(address):
+async def fetch_last_spl_transactions(address, limit=10):
     """Fetches the last SPL transactions for a given address."""
     transactions = []
     try:
-        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit=10&sort=desc"
+        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit={limit}&sort=desc"
         headers = {"x-api-key": SOLSCAN_API_KEY}
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
