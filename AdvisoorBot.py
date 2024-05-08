@@ -1,7 +1,6 @@
 import asyncio
 import aiohttp
 import os
-import sys
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -39,13 +38,11 @@ async def fetch_market_cap(session, mint_address):
             else:
                 print("No data found for the specified mint address.")
         else:
-            print(f"Failed to fetch data. Status code: {response.status}, Response: {response.text}")
+            print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
 
 async def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <mint_address>")
-        return
-    mint_address = sys.argv[1]
+    # Hardcoded mint address
+    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
     async with aiohttp.ClientSession() as session:
         await fetch_market_cap(session, mint_address)
 
