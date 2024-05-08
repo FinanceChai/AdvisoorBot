@@ -9,9 +9,8 @@ load_dotenv()
 # Get the necessary API key and details from the environment
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 
-async def fetch_market_cap(session, mint_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={mint_address}&limit=1"
-    print(f"Fetching data from URL: {url}")  # Log the URL to verify it's correct
+async def fetch_market_cap(session, token_address):
+    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={token_address}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
@@ -19,32 +18,32 @@ async def fetch_market_cap(session, mint_address):
             data = await response.json()
             print("Data retrieved from API:", data)  # Debug print the whole API response
             
-            if data['data'] and len(data['data']) > 0:
-                token_info = data['data'][0]
-                current_price = token_info.get('priceUst', None)
-                supply_info = token_info.get('supply', None)
+            if data:
+                name = data.get('name', "Unknown")
+                symbol = data.get('symbol', "Unknown")
+                price = data.get('price', 0)  # Default price is 0 if not available
+                supply = data.get('supply', 0)  # Default supply is 0 if not available
+                decimals = data.get('decimals', 0)  # Default decimals is 0 if not available
 
-                circulating_supply = None
-                if supply_info:
-                    circulating_supply = supply_info.get('uiAmount', None)
-                
-                print("Current Price:", current_price)
-                print("Circulating Supply:", circulating_supply)
-
-                if current_price is not None and circulating_supply is not None:
-                    market_cap = current_price * circulating_supply
-                    print(f"Current Market Cap for {mint_address}: ${market_cap:,.2f}")
+                if price and supply and decimals:
+                    adjusted_supply = float(supply) / (10 ** decimals)
+                    market_cap = price * adjusted_supply
+                    print(f"Token: {name} ({symbol})")
+                    print(f"Current Price: ${price}")
+                    print(f"Adjusted Circulating Supply: {adjusted_supply}")
+                    print(f"Current Market Cap: ${market_cap:,.2f}")
                 else:
-                    print("Critical data for market cap calculation is missing.")
+                    print("Price, supply, or decimals data is missing or invalid.")
             else:
-                print("No data found for the specified mint address.")
+                print("No data found for the specified token address.")
         else:
-            print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
+            response_text = await response.text()
+            print(f"Failed to fetch data. Status code: {response.status}, Response: {response_text}")
 
 async def main():
-    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+    token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
     async with aiohttp.ClientSession() as session:
-        await fetch_market_cap(session, mint_address)
+        await fetch_market_cap(session, token_address)
 
 if __name__ == "__main__":
     asyncio.run(main())
