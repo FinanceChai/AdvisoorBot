@@ -53,37 +53,34 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         # Send text only message with disabled web page preview
         await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
-
+        
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
+    last_check_times = {address: datetime.now() - timedelta(minutes=1) for address in TARGET_ADDRESSES}
+    last_checked_ids = {address: None for address in TARGET_ADDRESSES}
     
-    # Send initial message for each wallet address
-    initial_messages = []
+    # Initial check for last transactions for each wallet address
     for address in TARGET_ADDRESSES:
-        initial_transactions = await fetch_last_spl_transactions(address, limit=10)
-        message = await create_message(initial_transactions)
-        initial_messages.append(message)
-    await send_telegram_message(bot, CHAT_ID, "\n".join(initial_messages))
-    
-    last_check_time = datetime.now() - timedelta(minutes=1)
-    aggregated_transactions = []
-
-    # Main loop to check for new transactions
+        last_transactions = await fetch_last_spl_transactions(address)
+        if last_transactions:
+            message = await create_message(last_transactions)
+            image_path = get_random_image_path(IMAGE_DIRECTORY)
+            await send_telegram_message(bot, CHAT_ID, message, image_path)
+            last_checked_ids[address] = last_transactions[0].get('id')  # Update last checked transaction ID
+            
+    # Main loop to monitor for future transactions
     while True:
-        current_time = datetime.now()
-        if current_time - last_check_time >= timedelta(minutes=1):
-            # Aggregate transactions if more than one minute has passed since the last check
-            if aggregated_transactions:
-                message = await create_message(aggregated_transactions)
-                image_path = get_random_image_path(IMAGE_DIRECTORY)
-                await send_telegram_message(bot, CHAT_ID, message, image_path)
-                aggregated_transactions = []  # Clear aggregated transactions after sending the message
-            last_check_time = current_time
-        
         for address in TARGET_ADDRESSES:
-            new_transactions = await fetch_last_spl_transactions(address, limit=10)
-            aggregated_transactions.extend(new_transactions)
-        
+            current_time = datetime.now()
+            if current_time - last_check_times[address] >= timedelta(minutes=1):
+                new_transactions = await fetch_new_transactions(address, last_checked_ids[address])
+                if new_transactions:
+                    message = await create_message(new_transactions)
+                    image_path = get_random_image_path(IMAGE_DIRECTORY)
+                    await send_telegram_message(bot, CHAT_ID, message, image_path)
+                    last_checked_ids[address] = new_transactions[0].get('id')  # Update last checked transaction ID
+                last_check_times[address] = current_time
+                
         await asyncio.sleep(10)  # Check every 10 seconds
 
 async def create_message(transactions):
@@ -99,24 +96,25 @@ async def create_message(transactions):
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {symbol}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>Contract Address</a>: {contract_address}\n"
-            f"Wallet Address: {wallet_address}\n\n"
+            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
             f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
             f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
         )
     return '\n'.join(message_lines)
 
-async def fetch_last_spl_transactions(address, limit=10):
+async def fetch_last_spl_transactions(address):
     """Fetches the last SPL transactions for a given address."""
     transactions = []
     try:
-        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit={limit}&sort=desc"
+        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit=10&sort=desc"
         headers = {"x-api-key": SOLSCAN_API_KEY}
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
             for result in data['result']:
                 transaction = {
+                    'id': result.get('id'),
                     'symbol': result.get('symbol'),
                     'tokenName': result.get('tokenName'),
                     'tokenAddress': result.get('tokenAddress'),
@@ -125,6 +123,28 @@ async def fetch_last_spl_transactions(address, limit=10):
                 transactions.append(transaction)
     except Exception as e:
         print(f"Error fetching transactions for address {address}: {e}")
+    return transactions
+
+async def fetch_new_transactions(address, last_checked_id):
+    """Fetches new SPL transactions for a given address since the last checked transaction ID."""
+    transactions = []
+    try:
+        url = f"https://api.solanabeach.io/token_transfers?address={address}&before={last_checked_id}&sort=desc"
+        headers = {"x-api-key": SOLSCAN_API_KEY}
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            for result in data['result']:
+                transaction = {
+                    'id': result.get('id'),
+                    'symbol': result.get('symbol'),
+                    'tokenName': result.get('tokenName'),
+                    'tokenAddress': result.get('tokenAddress'),
+                    'owner': result.get('owner')
+                }
+                transactions.append(transaction)
+    except Exception as e:
+        print(f"Error fetching new transactions for address {address}: {e}")
     return transactions
 
 asyncio.run(main())
