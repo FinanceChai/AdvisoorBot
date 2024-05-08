@@ -42,15 +42,15 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
-async def fetch_last_spl_transactions(session, address):
+async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
     async with session.get(url, params=params, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data.get('data'):
-                return data['data'][0]  # Return the most recent transaction
+            if data.get('data') and data['data'][0]['signature'] != last_signature:
+                return data['data'][0]  # Return the most recent transaction if it's new
     return None
 
 async def create_message(transactions):
@@ -70,26 +70,23 @@ async def create_message(transactions):
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
+    last_signature = {address: None for address in TARGET_ADDRESSES}
     async with aiohttp.ClientSession() as session:
-        # Initial fetch and send a single message with the last transaction of each wallet
-        initial_transactions = []
+        # Initial fetch of transactions and update last known signatures
         for address in TARGET_ADDRESSES:
-            transaction = await fetch_last_spl_transactions(session, address)
+            transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
             if transaction:
-                initial_transactions.append(transaction)
-        if initial_transactions:
-            message = await create_message(initial_transactions)
-            image_path = get_random_image_path(IMAGE_DIRECTORY)
-            await send_telegram_message(bot, CHAT_ID, message, image_path)
+                last_signature[address] = transaction['signature']
 
         # Continuous monitoring of new transactions every minute
         while True:
             await asyncio.sleep(60)  # Wait for a minute before checking new transactions
             new_transactions = []
             for address in TARGET_ADDRESSES:
-                transaction = await fetch_last_spl_transactions(session, address)
+                transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction:
                     new_transactions.append(transaction)
+                    last_signature[address] = transaction['signature']
             if new_transactions:
                 message = await create_message(new_transactions)
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
