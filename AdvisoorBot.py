@@ -40,7 +40,7 @@ async def fetch_market_cap(session, mint_address):
             print(f"Failed to fetch data. Status code: {response.status}")
 
 async def main():
-    mint_address = "Enter_Your_Token_Mint_Address_Here"
+    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
     async with aiohttp.ClientSession() as session:
         await fetch_market_cap(session, mint_address)
 
