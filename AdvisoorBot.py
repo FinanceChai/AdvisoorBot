@@ -15,7 +15,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
-EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK", "WAVAX", "WETH", "WBTC","Bonk","bonk"}  # Add or modify as necessary
+EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK", "WAVAX", "WETH", "WBTC", "Bonk", "bonk"}
 
 def get_random_image_path(image_directory):
     if not os.path.exists(image_directory):
@@ -73,9 +73,11 @@ async def create_message(session, transactions):
         token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
+        amount = transaction.get('amount', 'Unknown')  # Assuming 'amount' is the key for the token amount in the transaction data
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
+            f"Amount: {amount}\n"  # Display the amount of tokens transferred
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
