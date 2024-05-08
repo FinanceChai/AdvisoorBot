@@ -59,15 +59,6 @@ async def main():
     last_check_times = {address: datetime.now() - timedelta(minutes=1) for address in TARGET_ADDRESSES}
     last_checked_ids = {address: None for address in TARGET_ADDRESSES}
     
-    # Initial check for last transactions for each wallet address
-    for address in TARGET_ADDRESSES:
-        last_transactions = await fetch_last_spl_transactions(address)
-        if last_transactions:
-            message = await create_message(last_transactions)
-            image_path = get_random_image_path(IMAGE_DIRECTORY)
-            await send_telegram_message(bot, CHAT_ID, message, image_path)
-            last_checked_ids[address] = last_transactions[0].get('id')  # Update last checked transaction ID
-            
     # Main loop to monitor for future transactions
     while True:
         for address in TARGET_ADDRESSES:
@@ -102,28 +93,6 @@ async def create_message(transactions):
             f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
         )
     return '\n'.join(message_lines)
-
-async def fetch_last_spl_transactions(address):
-    """Fetches the last SPL transactions for a given address."""
-    transactions = []
-    try:
-        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit=10&sort=desc"
-        headers = {"x-api-key": SOLSCAN_API_KEY}
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            for result in data['result']:
-                transaction = {
-                    'id': result.get('id'),
-                    'symbol': result.get('symbol'),
-                    'tokenName': result.get('tokenName'),
-                    'tokenAddress': result.get('tokenAddress'),
-                    'owner': result.get('owner')
-                }
-                transactions.append(transaction)
-    except Exception as e:
-        print(f"Error fetching transactions for address {address}: {e}")
-    return transactions
 
 async def fetch_new_transactions(address, last_checked_id):
     """Fetches new SPL transactions for a given address since the last checked transaction ID."""
