@@ -3,10 +3,11 @@ import io
 import asyncio
 import random
 import requests
-from telegram import Bot, InputFile
+from telegram import Bot
 from dotenv import load_dotenv
 from urllib.parse import quote as safely_quote
 from PIL import Image
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -55,24 +56,30 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    last_signatures = {address: [] for address in TARGET_ADDRESSES}
-
-    # Fetch the latest trades for each address and initialize the last signatures list
-    for address in TARGET_ADDRESSES:
-        new_transactions = await fetch_last_spl_transactions(address, [])
-        last_signatures[address] = [tx['signature'] for tx in new_transactions]
-        await process_transactions(new_transactions, bot)
+    last_check_time = datetime.now() - timedelta(minutes=1)
+    aggregated_transactions = []
 
     # Main loop to check for new transactions
     while True:
+        current_time = datetime.now()
+        if current_time - last_check_time >= timedelta(minutes=1):
+            # Aggregate transactions if more than one minute has passed since the last check
+            if aggregated_transactions:
+                message = await create_message(aggregated_transactions)
+                image_path = get_random_image_path(IMAGE_DIRECTORY)
+                await send_telegram_message(bot, CHAT_ID, message, image_path)
+                aggregated_transactions = []  # Clear aggregated transactions after sending the message
+            last_check_time = current_time
+        
         for address in TARGET_ADDRESSES:
-            new_transactions = await fetch_last_spl_transactions(address, last_signatures[address])
-            last_signatures[address].extend([tx['signature'] for tx in new_transactions])
-            await process_transactions(new_transactions, bot)
-        await asyncio.sleep(60)  # Check every minute
+            new_transactions = await fetch_last_spl_transactions(address)
+            aggregated_transactions.extend(new_transactions)
+        
+        await asyncio.sleep(10)  # Check every 10 seconds
 
-async def process_transactions(transactions, bot):
-    """Processes and sends messages for a list of transactions."""
+async def create_message(transactions):
+    """Creates a message from a list of transactions."""
+    message_lines = ["🎱 8 Ball Shakes 🎱\n\n"]
     for transaction in transactions:
         symbol = transaction.get('symbol')
         if symbol in excluded_symbols:
@@ -80,37 +87,35 @@ async def process_transactions(transactions, bot):
         token_name = transaction.get('tokenName')
         contract_address = transaction.get('tokenAddress')
         wallet_address = transaction.get('owner')
-        message = (
-            f"Advisoor Notes 📝\n\n"
+        message_lines.append(
             f"Token Name: {token_name}\n"
-            f"Token Symbol: {symbol}\n\n"
-            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>Contract Address</a>\n"
+            f"Token Symbol: {symbol}\n"
+            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
             f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
-            f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}?ref={JUPITER_REFERRAL_KEY}'>Buy on Jupiter</a>\n\n"
+            f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
         )
-        image_path = get_random_image_path(IMAGE_DIRECTORY)
-        await send_telegram_message(bot, CHAT_ID, message, image_path)
+    return '\n'.join(message_lines)
 
-async def fetch_last_spl_transactions(address, known_signatures):
-    """Fetch the latest SPL token transactions for a specific Solana address."""
-    new_transactions = []
+async def fetch_last_spl_transactions(address):
+    """Fetches the last SPL transactions for a given address."""
+    transactions = []
     try:
-        params = {'account': address, 'limit': 5, 'offset': 0}
-        headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
-        url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
-        response = requests.get(url, params=params, headers=headers)
+        url = f"https://api.solanabeach.io/token_transfers?address={address}&limit=10&sort=desc"
+        headers = {"x-api-key": SOLSCAN_API_KEY}
+        response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
-            for transaction in data.get('data', []):
-                signature = transaction.get('signature', '')
-                if isinstance(signature, list):
-                    signature = signature[0] if signature else ''
-                if signature and signature not in known_signatures:
-                    new_transactions.append(transaction)
-    except requests.RequestException as e:
-        print(f"Network error when fetching transactions for {address}: {e}")
-    return new_transactions
+            for result in data['result']:
+                transaction = {
+                    'symbol': result.get('symbol'),
+                    'tokenName': result.get('tokenName'),
+                    'tokenAddress': result.get('tokenAddress'),
+                    'owner': result.get('owner')
+                }
+                transactions.append(transaction)
+    except Exception as e:
+        print(f"Error fetching transactions for address {address}: {e}")
+    return transactions
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
