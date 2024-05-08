@@ -20,13 +20,11 @@ async def fetch_market_cap(session, mint_address):
             
             if data['data'] and len(data['data']) > 0:
                 token_info = data['data'][0]
-                # Assuming that 'priceUst' and supply data might be in a different location or under different names:
-                current_price = token_info.get('priceUst', None)  # Update this if the key is different
-                supply_info = token_info.get('supply', None)  # Update this if the key is different
-                
-                # If the structure of supply_info is known and contains the circulating amount:
-                if supply_info:
-                    circulating_supply = supply_info.get('amount', None)  # Update this if the key is different
+                current_price = token_info.get('priceUst', None)  # Check for current price
+                supply_info = token_info.get('supply', {})  # This assumes there is a 'supply' key
+
+                # Initialize circulating supply to handle cases where it might not be provided
+                circulating_supply = supply_info.get('uiAmount', None) if supply_info else None
 
                 print("Current Price:", current_price)  # Debug print the price
                 print("Circulating Supply:", circulating_supply)  # Debug print the circulating supply
