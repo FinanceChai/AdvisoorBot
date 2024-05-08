@@ -20,10 +20,9 @@ IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
 excluded_symbols = ["ETH", "SOL", "WAVAX", "WSOL", "BTC", "WBTC","BONK"]
 
 def get_random_image_path(image_directory):
-    """Returns a random image path from the specified directory, creating the directory if it does not exist."""
     if not os.path.exists(image_directory):
         os.makedirs(image_directory, exist_ok=True)
-        return None  # Return None if the directory was just created and is empty
+        return None
     
     images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
     if images:
@@ -32,88 +31,50 @@ def get_random_image_path(image_directory):
         return None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
-    """Sends a message to a Telegram chat, with an optional resized image. Disables web page preview for text-only messages."""
     if image_path:
         try:
-            # Open an image file
             with Image.open(image_path) as img:
-                # Resize the image using LANCZOS resampling method
-                img = img.resize((200, 200), Image.Resampling.LANCZOS)  # Resize to 800x600 or another dimension as needed
-                # Save the resized image to a buffer
+                img = img.resize((200, 200), Image.Resampling.LANCZOS)
                 buf = io.BytesIO()
                 img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
                 img.save(buf, format=img_format)
                 buf.seek(0)
-                # Send photo with caption
                 await bot.send_photo(chat_id=chat_id, photo=buf, caption=text, parse_mode='HTML')
         except Exception as e:
             print(f"Error resizing or sending image: {e}")
-            # Fallback: send text message if image processing fails
             await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
-        # Send text only message with disabled web page preview
         await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
-        
+
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     last_check_times = {address: datetime.now() - timedelta(minutes=1) for address in TARGET_ADDRESSES}
     last_checked_ids = {address: None for address in TARGET_ADDRESSES}
     
+    # Fetch initial last transactions for each address
+    initial_transactions = []
+    for address in TARGET_ADDRESSES:
+        transactions = await fetch_new_transactions(address, None)
+        if transactions:
+            initial_transactions.extend(transactions)
+            last_checked_ids[address] = transactions[0].get('id')
+    if initial_transactions:
+        message = await create_message(initial_transactions)
+        image_path = get_random_image_path(IMAGE_DIRECTORY)
+        await send_telegram_message(bot, CHAT_ID, message, image_path)
+
     # Main loop to monitor for future transactions
     while True:
+        current_time = datetime.now()
         for address in TARGET_ADDRESSES:
-            current_time = datetime.now()
             if current_time - last_check_times[address] >= timedelta(minutes=1):
                 new_transactions = await fetch_new_transactions(address, last_checked_ids[address])
                 if new_transactions:
                     message = await create_message(new_transactions)
                     image_path = get_random_image_path(IMAGE_DIRECTORY)
                     await send_telegram_message(bot, CHAT_ID, message, image_path)
-                    last_checked_ids[address] = new_transactions[0].get('id')  # Update last checked transaction ID
+                    last_checked_ids[address] = new_transactions[0].get('id')
                 last_check_times[address] = current_time
-                
-        await asyncio.sleep(10)  # Check every 10 seconds
-
-async def create_message(transactions):
-    """Creates a message from a list of transactions."""
-    message_lines = ["🎱 8 Ball Shakes 🎱\n\n"]
-    for transaction in transactions:
-        symbol = transaction.get('symbol')
-        if symbol in excluded_symbols:
-            continue
-        token_name = transaction.get('tokenName')
-        contract_address = transaction.get('tokenAddress')
-        wallet_address = transaction.get('owner')
-        message_lines.append(
-            f"Token Name: {token_name}\n"
-            f"Token Symbol: {symbol}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
-            f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
-            f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
-        )
-    return '\n'.join(message_lines)
-
-async def fetch_new_transactions(address, last_checked_id):
-    """Fetches new SPL transactions for a given address since the last checked transaction ID."""
-    transactions = []
-    try:
-        url = f"https://api.solanabeach.io/token_transfers?address={address}&before={last_checked_id}&sort=desc"
-        headers = {"x-api-key": SOLSCAN_API_KEY}
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            for result in data['result']:
-                transaction = {
-                    'id': result.get('id'),
-                    'symbol': result.get('symbol'),
-                    'tokenName': result.get('tokenName'),
-                    'tokenAddress': result.get('tokenAddress'),
-                    'owner': result.get('owner')
-                }
-                transactions.append(transaction)
-    except Exception as e:
-        print(f"Error fetching new transactions for address {address}: {e}")
-    return transactions
+        await asyncio.sleep(60)  # Wait for a minute before the next check
 
 asyncio.run(main())
