@@ -46,62 +46,62 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
-async def fetch_new_transactions(session, address, last_checked_id):
-    transactions = []
-    url = f"https://public-api.solscan.io/account/transactions?account={address}&before={last_checked_id}&limit=1"
-    async with session.get(url) as response:
+async def fetch_last_spl_transactions(session, address, last_signatures):
+    params = {'account': address, 'limit': 5, 'offset': 0}
+    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
+    url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
+    async with session.get(url, params=params, headers=headers) as response:
+        new_transactions = []
         if response.status == 200:
             data = await response.json()
-            for result in data:
-                transaction = {
-                    'id': result['txHash'],
-                    'symbol': result.get('tokenTransfers', [{}])[0].get('tokenSymbol', 'Unknown'),
-                    'tokenName': result.get('tokenTransfers', [{}])[0].get('tokenName', 'Unknown'),
-                    'tokenAddress': result.get('tokenTransfers', [{}])[0].get('contract', 'Unknown'),
-                    'owner': address
-                }
-                transactions.append(transaction)
-    return transactions
+            for transaction in data.get('data', []):
+                signature = transaction.get('signature', '')
+                if isinstance(signature, list):
+                    signature = signature[0] if signature else ''
+                if signature and signature not in last_signatures:
+                    new_transactions.append(transaction)
+                    last_signatures.add(signature)
+    return new_transactions
 
 async def create_message(transactions):
     message_lines = ["🎱 8 Ball Shakes 🎱\n\n"]
     for transaction in transactions:
-        if transaction['symbol'] in excluded_symbols:
+        token_symbol = transaction.get('tokenSymbol', 'Unknown')
+        if token_symbol in excluded_symbols:
             continue
+        token_name = transaction.get('tokenName', 'Unknown')
+        token_address = transaction.get('tokenAddress', 'Unknown')
+        owner_address = transaction.get('owner', 'Unknown')
         message_lines.append(
-            f"Token Name: {transaction['tokenName']}\n"
-            f"Token Symbol: {transaction['symbol']}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(transaction['tokenAddress'])}'>CA</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner'])}'>Buyer Wallet</a>\n\n"
-            f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(transaction['tokenAddress'])}'>View Pair on DexScreener</a>\n"
-            f"<a href='https://jup.ag/swap/SOL-{safely_quote(transaction['tokenAddress'])}'>Buy on Jupiter</a>\n\n"
+            f"Token Name: {token_name}\n"
+            f"Token Symbol: {token_symbol}\n"
+            f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
     return '\n'.join(message_lines)
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    last_checked_ids = {address: None for address in TARGET_ADDRESSES}
+    last_signatures = {address: set() for address in TARGET_ADDRESSES}
 
     async with aiohttp.ClientSession() as session:
         # Initial fetch of transactions
         for address in TARGET_ADDRESSES:
-            transactions = await fetch_new_transactions(session, address, None)
+            transactions = await fetch_last_spl_transactions(session, address, last_signatures[address])
             if transactions:
                 message = await create_message(transactions)
                 image_path = get_random_image_path(IMAGE_DIRECTORY)
                 await send_telegram_message(bot, CHAT_ID, message, image_path)
-                last_checked_ids[address] = transactions[0]['id']
 
         # Continuous monitoring of new transactions
         while True:
             await asyncio.sleep(60)  # Wait for a minute before the next cycle
             for address in TARGET_ADDRESSES:
-                transactions = await fetch_new_transactions(session, address, last_checked_ids[address])
+                transactions = await fetch_last_spl_transactions(session, address, last_signatures[address])
                 if transactions:
                     message = await create_message(transactions)
                     image_path = get_random_image_path(IMAGE_DIRECTORY)
                     await send_telegram_message(bot, CHAT_ID, message, image_path)
-                    last_checked_ids[address] = transactions[0]['id']
 
 if __name__ == "__main__":
     asyncio.run(main())
