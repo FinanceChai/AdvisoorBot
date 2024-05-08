@@ -44,17 +44,19 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
+    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={safely_quote(token_address)}&limit=1"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            market_cap = data.get('marketData', {}).get('marketCap', 'Unknown')
-            return {
-                'symbol': data.get('symbol', 'Unknown'),
-                'name': data.get('name', 'Unknown'),
-                'market_cap': market_cap
-            }
+            if data['data']:
+                token_info = data['data'][0]
+                market_cap = token_info.get('marketCapFD', 'Unknown')
+                return {
+                    'symbol': token_info.get('tokenSymbol', 'Unknown'),
+                    'name': token_info.get('tokenName', 'Unknown'),
+                    'market_cap': market_cap
+                }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
 async def fetch_last_spl_transactions(session, address, last_signature):
@@ -84,7 +86,7 @@ async def create_message(session, transactions):
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
-            f"Market Cap: ${market_cap}\n"
+            f"Fully Diluted Market Cap: ${market_cap:,.2f}\n"
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
