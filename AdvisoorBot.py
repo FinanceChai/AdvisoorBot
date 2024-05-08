@@ -18,14 +18,19 @@ async def fetch_market_cap(session, mint_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
+            print("Data retrieved from API:", data)  # Debug print the whole API response
+            
             if data['data']:
                 token_info = data['data'][0]
-                current_price = token_info.get('priceUst', 0)
+                current_price = token_info.get('priceUst', None)
                 supply_info = token_info.get('supply', {})
-                circulating_supply = supply_info.get('uiAmount', 0)  # uiAmount should be used as it represents the user-friendly amount.
+                circulating_supply = supply_info.get('uiAmount', None)
 
-                # Calculate market cap
-                if current_price and circulating_supply:
+                print("Current Price:", current_price)  # Debug print the price
+                print("Circulating Supply:", circulating_supply)  # Debug print the circulating supply
+
+                # Calculate market cap if both price and circulating supply are available
+                if current_price is not None and circulating_supply is not None:
                     market_cap = current_price * circulating_supply
                     print(f"Current Market Cap for {mint_address}: ${market_cap:,.2f}")
                 else:
