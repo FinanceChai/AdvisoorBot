@@ -51,11 +51,11 @@ async def fetch_token_metadata(session, token_address):
             data = await response.json()
             if data['data']:
                 token_info = data['data'][0]
-                market_cap = token_info.get('marketCapFD', 'Unknown')
+                
                 return {
                     'symbol': token_info.get('tokenSymbol', 'Unknown'),
                     'name': token_info.get('tokenName', 'Unknown'),
-                    'market_cap': market_cap
+                    'market_cap': token_info.get('marketCapFD', 'Unknown')
                 }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
