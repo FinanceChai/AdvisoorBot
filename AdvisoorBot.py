@@ -10,7 +10,8 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 
 async def fetch_market_cap(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={token_address}"
+    # Construct the URL with query parameters for limit and offset
+    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=10&offset=0"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
@@ -18,24 +19,14 @@ async def fetch_market_cap(session, token_address):
             data = await response.json()
             print("Data retrieved from API:", data)  # Debug print the whole API response
             
-            if data:
-                name = data.get('name', "Unknown")
-                symbol = data.get('symbol', "Unknown")
-                price = data.get('price', 0)  # Default price is 0 if not available
-                supply = data.get('supply', 0)  # Default supply is 0 if not available
-                decimals = data.get('decimals', 0)  # Default decimals is 0 if not available
-
-                if price and supply and decimals:
-                    adjusted_supply = float(supply) / (10 ** decimals)
-                    market_cap = price * adjusted_supply
-                    print(f"Token: {name} ({symbol})")
-                    print(f"Current Price: ${price}")
-                    print(f"Adjusted Circulating Supply: {adjusted_supply}")
-                    print(f"Current Market Cap: ${market_cap:,.2f}")
-                else:
-                    print("Price, supply, or decimals data is missing or invalid.")
+            # Extract the fully diluted market cap (marketCapFD) directly
+            market_cap_fd = data.get('marketCapFD', None)
+            
+            if market_cap_fd is not None:
+                # Format the market cap as a number
+                print(f"Fully Diluted Market Cap: ${market_cap_fd:,.2f}")
             else:
-                print("No data found for the specified token address.")
+                print("Market cap data is missing or invalid.")
         else:
             response_text = await response.text()
             print(f"Failed to fetch data. Status code: {response.status}, Response: {response_text}")
