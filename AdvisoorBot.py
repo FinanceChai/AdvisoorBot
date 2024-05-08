@@ -99,8 +99,8 @@ async def create_message(transactions):
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {symbol}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>CA</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(wallet_address)}'>Buyer Wallet</a>\n\n"
+            f"<a href='https://solscan.io/token/{safely_quote(contract_address)}'>Contract Address</a>: {contract_address}\n"
+            f"Wallet Address: {wallet_address}\n\n"
             f"<a href='https://www.dextools.io/app/en/solana/pair-explorer/{safely_quote(contract_address)}'>View Pair on DexScreener</a>\n"
             f"<a href='https://jup.ag/swap/SOL-{safely_quote(contract_address)}'>Buy on Jupiter</a>\n\n"
         )
