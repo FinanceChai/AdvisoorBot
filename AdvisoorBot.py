@@ -1,7 +1,7 @@
 import asyncio
 import aiohttp
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -20,8 +20,16 @@ async def fetch_market_cap(session, mint_address):
             data = await response.json()
             if data['data']:
                 token_info = data['data'][0]
-                market_cap = token_info.get('marketCapFD', 'Unknown')
-                print(f"Market Cap for {mint_address}: ${market_cap:,.2f}")
+                current_price = token_info.get('priceUst', 0)
+                supply_info = token_info.get('supply', {})
+                circulating_supply = supply_info.get('uiAmount', 0)  # uiAmount should be used as it represents the user-friendly amount.
+
+                # Calculate market cap
+                if current_price and circulating_supply:
+                    market_cap = current_price * circulating_supply
+                    print(f"Current Market Cap for {mint_address}: ${market_cap:,.2f}")
+                else:
+                    print("Price or circulating supply data is missing.")
             else:
                 print("No data found for the specified mint address.")
         else:
@@ -29,7 +37,7 @@ async def fetch_market_cap(session, mint_address):
 
 async def main():
     # Define the mint address for the token whose market cap you want to fetch
-    mint_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+    mint_address = "Enter_Your_Token_Mint_Address_Here"
     
     # Create a session to manage HTTP requests
     async with aiohttp.ClientSession() as session:
