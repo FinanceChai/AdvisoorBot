@@ -49,8 +49,13 @@ async def fetch_token_metadata(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            return data
-        return None
+            market_cap = data.get('marketData', {}).get('marketCap', 'Unknown')
+            return {
+                'symbol': data.get('symbol', 'Unknown'),
+                'name': data.get('name', 'Unknown'),
+                'market_cap': market_cap
+            }
+        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
@@ -67,19 +72,21 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
-        token_symbol = token_metadata.get('symbol', 'Unknown') if token_metadata else 'Unknown'
+        token_symbol = token_metadata['symbol']
+        token_name = token_metadata['name']
+        market_cap = token_metadata['market_cap']
+
         if token_symbol in EXCLUDED_SYMBOLS:
             continue
-        token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
+        
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
-        amount = transaction.get('amount', 'Unknown')  # Assuming 'amount' is the key for the token amount in the transaction data
         message_lines.append(
-            f"Name: {token_name}\n"
-            f"Symbol: {token_symbol}\n"
-            f"Amount: {amount}\n"  # Display the amount of tokens transferred
+            f"Token Name: {token_name}\n"
+            f"Token Symbol: {token_symbol}\n"
+            f"Market Cap: ${market_cap:,}\n"
             f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
