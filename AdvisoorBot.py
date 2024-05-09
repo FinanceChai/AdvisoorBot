@@ -18,14 +18,25 @@ async def fetch_market_cap(session, token_address):
             token_symbol = data.get('tokenSymbol', 'Unknown')
             market_cap = data.get('marketCapFD', None)
                         
-            print(f"Price: {price}, Type: {type(priceUst)}")
-            print(f"Name: {token_name}, Type: {type(tokenName)}")
-            print(f"token_symbol: {token_symbol}, Type: {type(tokenSymbol)}")
+            print(f"Price: {price}, Type: {type(price)}")
+            print(f"Name: {token_name}, Type: {type(token_name)}")
+            print(f"Token Symbol: {token_symbol}, Type: {type(token_symbol)}")
+            print(f"Market Cap: {market_cap}, Type: {type(market_cap)}")
+            
+            return token_name, token_symbol, market_cap
+        
+        print(f"Failed to fetch data. Status code: {response.status}")
+        return "Unknown", "Unknown", None
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
-        token_name, token_symbol, market_cap = await fetch_market_cap(session, token_address)
+        data = await fetch_market_cap(session, token_address)
+        if data is not None:
+            token_name, token_symbol, market_cap = data
+            print(f"Token Name: {token_name}")
+            print(f"Token Symbol: {token_symbol}")
+            print(f"Market Cap: {market_cap}")
 
 if __name__ == "__main__":
     import asyncio
