@@ -66,8 +66,7 @@ async def main():
             print(f"Price in USDT: {token_data['price_usdt']}")
             print(f"24h Volume in USDT: {token_data['volume_usdt']}")
             print(f"24h Price Change: {token_data['price_change_24h']}")
-            for market in token_data['markets_info']:
-                print(f"Contract Address: {market['address']}")
+            if token_data['markets_info'][0]:
                 print(f"Symbol: {market['base']['symbol']}")
                 print(f"Token Name: {market['base']['name']}")
         else:
