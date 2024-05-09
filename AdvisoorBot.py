@@ -17,15 +17,19 @@ async def fetch_market_cap(session, token_address):
             token_name = data.get('name', 'Unknown')
             token_symbol = data.get('symbol', 'Unknown')
             decimals = data.get('decimals', None)
-            supply = data.get('supply',None)
-            Mkt_Cap = price * supply / decimals
+            supply = data.get('supply', None)
             
-            if price is not None:
-                formatted_price = f"${mkt_cap:,.2f}"
-                return token_name, token_symbol, formatted_price
+            if price is not None and decimals is not None and supply is not None:
+                try:
+                    mkt_cap = price * supply / decimals
+                    formatted_price = f"${mkt_cap:,.2f}"
+                    return token_name, token_symbol, formatted_price
+                except ZeroDivisionError:
+                    print("Error: Decimals cannot be zero.")
             else:
                 print("Market cap data is missing or invalid.")
     return "Unknown", "Unknown", None
+
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
