@@ -17,15 +17,22 @@ async def fetch_last_transaction(session, address, last_signature):
     async with session.get(url, params=params, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data.get('data') and data['data'][0]['signature'] != last_signature:
-                # Return the signature and token address if the transaction is new
-                return data['data'][0]['signature'], data['data'][0]['tokenAddress']
+            if data.get('data'):
+                current_signature = data['data'][0]['signature']
+                if current_signature != last_signature:
+                    return current_signature, data['data'][0]['tokenAddress']
     return None, None
 
 async def main():
     async with aiohttp.ClientSession() as session:
         # Initialize the last known signatures for each target address
         last_signature = {address: None for address in TARGET_ADDRESSES}
+        
+        # Populate the initial last known signatures to prevent the first transaction from repeating
+        for address in TARGET_ADDRESSES:
+            _, initial_signature = await fetch_last_transaction(session, address, None)
+            if initial_signature:
+                last_signature[address] = initial_signature
         
         # Continuously check for new transactions
         while True:
