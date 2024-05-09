@@ -74,7 +74,7 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         if transaction:
-            token_metadata = await fetch_token_metadata(session, transaction['mintAddress'])
+            token_metadata = await fetch_token_metadata(session, transaction['address'])
             token_symbol = token_metadata['symbol']
             token_name = token_metadata['name']
             market_cap = token_metadata['market_cap']
