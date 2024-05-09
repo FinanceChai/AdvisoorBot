@@ -78,19 +78,25 @@ async def main():
         
         # Populate the initial last known signatures to prevent the first transaction from repeating
         for address in TARGET_ADDRESSES:
-            _, initial_signature = await fetch_last_spl_transactions(session, address, None)
-            if initial_signature:
-                last_signature[address] = initial_signature
+            transaction_details = await fetch_last_spl_transactions(session, address, None)
+            if transaction_details:
+                last_signature[address] = transaction_details['signature']
         
         # Continuously check for new transactions
         while True:
             await asyncio.sleep(60)  # Check every minute
             for address in TARGET_ADDRESSES:
-                new_signature, token_address = await fetch_last_transaction(session, address, last_signature[address])
-                if new_signature:
+                transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
+                if transaction_details:
+                    new_signature = transaction_details['signature']
+                    token_address = transaction_details['token_address']
                     print(f"New transaction detected for {address}. Token address: {token_address}")
                     # Update the last known signature to the new one
                     last_signature[address] = new_signature
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
 
 if __name__ == "__main__":
     asyncio.run(main())
