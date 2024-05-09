@@ -33,7 +33,7 @@ async def main():
         token_name, token_symbol, market_cap = await fetch_market_cap(session, token_address)
         print(f"Token Name: {token_name}")
         print(f"Token Symbol: {token_symbol}")
-        print(f"Market Cap: {price}")
+        print(f"Market Cap: {mkt_cap}")
 
 if __name__ == "__main__":
     import asyncio
