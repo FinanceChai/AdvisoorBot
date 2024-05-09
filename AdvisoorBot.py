@@ -6,8 +6,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get the API key from the environment
-SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
+IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
+EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK"}  # Add or modify as necessary
+
+def get_random_image_path(image_directory):
+    if not os.path.exists(image_directory):
+        os.makedirs(image_directory, exist_ok=True)
+        return None
+    images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
+    if images:
+        return random.choice(images)
+    else:
+        return None
 
 async def fetch_last_transaction(session, address, last_signature):
     """Fetches the most recent transaction for the given address and checks if it's new compared to the last_signature."""
