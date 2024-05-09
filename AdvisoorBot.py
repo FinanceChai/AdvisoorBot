@@ -22,6 +22,22 @@ def get_random_image_path(image_directory):
         return random.choice(images)
     else:
         return None
+        
+async def send_telegram_message(bot, chat_id, text, image_path=None):
+    if image_path:
+        try:
+            with Image.open(image_path) as img:
+                img = img.resize((200, 200), Image.Resampling.LANCZOS)
+                buf = io.BytesIO()
+                img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
+                img.save(buf, format=img_format)
+                buf.seek(0)
+                await bot.send_photo(chat_id, photo=buf, caption=text, parse_mode='HTML')
+        except Exception as e:
+            print(f"Error resizing or sending image: {e}")
+            await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
+    else:
+        await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
 async def fetch_last_transaction(session, address, last_signature):
     """Fetches the most recent transaction for the given address and checks if it's new compared to the last_signature."""
