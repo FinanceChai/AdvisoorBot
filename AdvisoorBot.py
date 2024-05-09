@@ -26,7 +26,6 @@ async def fetch_token_metadata(session, token_address):
                 }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
-
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
