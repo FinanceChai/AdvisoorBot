@@ -40,19 +40,21 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         await bot.send_message(chat_id, text=text, parse_mode='HTML')
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={safely_quote(token_address)}&limit=1"
+    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data.get('data'):
-                token_info = data['data'][0]
+            if data and 'data' in data:
+                token_info = data['data']
                 return {
                     'symbol': token_info.get('tokenSymbol', 'Unknown'),
                     'name': token_info.get('tokenName', 'Unknown'),
-                    'market_cap': token_info.get('marketCapFD', 'Unknown')
+                    'market_cap': token_info.get('marketCapFD', 'Unknown'),
+                    'mint_address': token_info.get('mintAddress', 'Unknown')
                 }
-        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
+        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown', 'mint_address': 'Unknown'}
+
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
@@ -74,12 +76,12 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         if transaction:
-            token_metadata = await fetch_token_metadata(session, transaction['address'])
+            token_metadata = await fetch_token_metadata(session, transaction['address'])  # Ensure 'address' is the correct key
             token_symbol = token_metadata['symbol']
             token_name = token_metadata['name']
             market_cap = token_metadata['market_cap']
             if token_symbol not in EXCLUDED_SYMBOLS:
-                token_address = transaction.get('address', 'Unknown')
+                token_address = transaction.get('address', 'Unknown')  # Ensure 'address' is the correct key
                 owner_address = transaction.get('owner', 'Unknown')
                 message_lines.append(
                     f"Token Name: {token_name}\n"
@@ -89,6 +91,7 @@ async def create_message(session, transactions):
                     f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
                 )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
+
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
