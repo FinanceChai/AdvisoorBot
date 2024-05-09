@@ -40,35 +40,28 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         await bot.send_message(chat_id, text=text, parse_mode='HTML')
 
 async def fetch_market_cap(session, token_address):
-    # Construct the URL with query parameters for limit and offset
     url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=10&offset=0"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-                        
-            # Extract the fully diluted market cap (marketCapFD) directly
             market_cap_fd = data.get('marketCapFD', None)
             token_name = data.get('tokenName', 'Unknown')
             token_symbol = data.get('tokenSymbol', 'Unknown')
             
             if market_cap_fd is not None:
-                # Format the market cap as a number
                 formatted_market_cap = f"${market_cap_fd:,.2f}"
-                print(f"Token Name: {token_name}")
-                print(f"Token Symbol: {token_symbol}")
-                print(f"Fully Diluted Market Cap: {formatted_market_cap}")
+                return token_name, token_symbol, formatted_market_cap
             else:
                 print("Market cap data is missing or invalid.")
-        else:
-            response_text = await response.text()
-            print(f"Failed to fetch data. Status code: {response.status}, Response: {response_text}")
+    return "Unknown", "Unknown", None
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
+    
     async with session.get(url, params=params, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
@@ -80,11 +73,10 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         if transaction:
-            # Fetch market cap data using fetch_market_cap function
             token_address = transaction.get('address', 'Unknown')
             token_name, token_symbol, formatted_market_cap = await fetch_market_cap(session, token_address)
 
-            if token_symbol not in EXCLUDED_SYMBOLS:
+            if formatted_market_cap is not None and token_symbol not in EXCLUDED_SYMBOLS:
                 owner_address = transaction.get('owner', 'Unknown')
 
                 message_lines.append(
@@ -95,7 +87,6 @@ async def create_message(session, transactions):
                     f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
                 )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
-
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
