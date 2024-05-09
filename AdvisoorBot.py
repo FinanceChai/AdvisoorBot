@@ -52,18 +52,22 @@ async def fetch_token_metadata(session, token_address):
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
-                print("Token Metadata Response:", data)  # Add this line for debugging
-                return {
-                    'market_cap': data.get('marketCapFD', 'Unknown'),
-                    'price_usdt': data.get('priceUsdt', 'Unknown'),
-                    'markets': data.get('markets', [])
-                }
+                if 'markets' in data and data['markets']:
+                    return {
+                        'market_cap': data.get('marketCapFD', 'Unknown'),
+                        'price_usdt': data.get('priceUsdt', 'Unknown'),
+                        'markets': data['markets']
+                    }
+                else:
+                    print(f"No markets found for token address: {token_address}")
+                    return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
             else:
                 print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
                 return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
     except Exception as e:
         print(f"An error occurred while fetching token metadata: {e}")
         return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
+
 
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
