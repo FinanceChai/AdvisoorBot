@@ -1,13 +1,21 @@
 import aiohttp
 import asyncio
 import os
+from dotenv import load_dotenv
 
-# Load API key from environment variable
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the API key from the environment
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={token_address}"
-    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
+    headers = {'accept': '*/*'}
+    
+    # Add API key to headers if available
+    if SOLSCAN_API_KEY:
+        headers['token'] = SOLSCAN_API_KEY
     
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
