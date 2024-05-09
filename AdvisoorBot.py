@@ -91,26 +91,27 @@ async def create_message(session, transactions):
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     last_signature = {address: None for address in TARGET_ADDRESSES}
-    async with aiohttp.ClientSession() as session:
-        # Continuous monitoring of new transactions every minute
-        while True:
-            await asyncio.sleep(60)
-            new_transactions = []
-            for address in TARGET_ADDRESSES:
-                transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
-                if transaction:
-                    new_transactions.append(transaction)
-                    last_signature[address] = transaction['signature']
-                    print(f"New transaction for {address}: {transaction}")
-            if new_transactions:
-                message = await create_message(session, new_transactions)
-                if message:
-                    image_path = get_random_image_path(IMAGE_DIRECTORY)
-                    await send_telegram_message(bot, CHAT_ID, message, image_path)
-                else:
-                    print("No new messages to send.")
-            else:
-                print("No new transactions detected.")
+    try:
+        async with aiohttp.ClientSession() as session:
+            while True:
+                await asyncio.sleep(60)  # Wait for a minute before checking new transactions
+                new_transactions = []
+                for address in TARGET_ADDRESSES:
+                    transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
+                    if transaction:
+                        new_transactions.append(transaction)
+                        last_signature[address] = transaction['signature']
+                if new_transactions:
+                    message = await create_message(session, new_transactions)
+                    if message:
+                        image_path = get_random_image_path(IMAGE_DIRECTORY)
+                        await send_telegram_message(bot, CHAT_ID, message, image_path)
+    except asyncio.CancelledError:
+        print("Script was interrupted by user or system. Cleaning up...")
+        # Place any necessary cleanup operations here
+    finally:
+        await bot.close()  # Properly close the bot when the script is stopped
+        print("Bot shut down gracefully.")
 
 if __name__ == "__main__":
     asyncio.run(main())
