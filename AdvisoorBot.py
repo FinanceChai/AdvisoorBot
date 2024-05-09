@@ -35,16 +35,13 @@ async def fetch_market_cap(session, token_address):
                 print("Market cap data is missing or invalid.")
     return "Unknown", "Unknown", None
 
-
-
-
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
         token_name, token_symbol, market_cap = await fetch_market_cap(session, token_address)
         print(f"Token Name: {token_name}")
         print(f"Token Symbol: {token_symbol}")
-        print(f"Market Cap: {mkt_cap}")
+        print(f"Market Cap: {market_cap}")
 
 if __name__ == "__main__":
     import asyncio
