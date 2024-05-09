@@ -57,6 +57,7 @@ async def fetch_market_cap(session, token_address):
                 print("Market cap data is missing or invalid.")
     return "Unknown", "Unknown", None
 
+
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
