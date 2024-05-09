@@ -16,6 +16,7 @@ async def fetch_token_metadata(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
+            print("API Response Data:", data)  # Print entire response data
             if data['data']:
                 token_info = data['data'][0]
                 market_cap = token_info.get('marketCapFD', 'Unknown')
@@ -25,6 +26,7 @@ async def fetch_token_metadata(session, token_address):
                     'market_cap': market_cap
                 }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
+
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
