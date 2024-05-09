@@ -26,7 +26,7 @@ async def fetch_market_cap(session, token_address):
             if price is not None and decimals is not None and supply is not None:
                 try:
                     supply = int(supply)  # Convert to integer
-                    market_cap = price * supply / decimals
+                    market_cap = price * (supply / decimals)
                     formatted_price = f"${market_cap:,.2f}"
                     return token_name, token_symbol, formatted_price
                 except ZeroDivisionError:
