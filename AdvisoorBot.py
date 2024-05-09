@@ -22,8 +22,8 @@ async def fetch_token_metadata(session, token_address):
             data = await response.json()
             token_data = data.get('data', [{}])[0]  # Assume 'data' is a list and fetch the first item
             # General token information
-            name = token_data.get('tokenName', 'Unknown')
-            symbol = token_data.get('tokenSymbol', 'Unknown')
+            name = token_data.get('name', 'Unknown')
+            symbol = token_data.get('symbol', 'Unknown')
             market_cap = token_data.get('marketCapFD', 'Unknown')
             # Market details
             markets_info = []
