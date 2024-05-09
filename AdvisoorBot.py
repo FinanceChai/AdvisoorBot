@@ -34,6 +34,9 @@ async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
         token_data = await fetch_token_metadata(session, token_address)
+        if token_data:
+            print(f"Token Market Cap: ${float(token_data['market_cap']):,.2f}" if token_data['market_cap'] != 'Unknown' else "Unknown")
+            print(f"Price in USDT: {token_data['price_usdt']}")
         if token_data and 'markets' in token_data and len(token_data['markets']) > 0:
             market = token_data['markets'][0]  # Safely access the first market
             base_info = market.get('base', {})
