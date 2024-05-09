@@ -2,60 +2,66 @@ import aiohttp
 import asyncio
 import os
 from dotenv import load_dotenv
+from telegram import Bot  # You need to install python-telegram-bot package
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Get the API key from the environment
+# API key and other settings
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+TARGET_ADDRESSES = ['List', 'of', 'predefined', 'addresses']
 
-async def fetch_token_metadata(session, token_address):
-    """Fetches metadata for a given token address from the Solscan API."""
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=2"
-    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
-
-    if not SOLSCAN_API_KEY:
-        print("API Key is not set. Please check your .env file or environment variables.")
-        return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
-
-    try:
+async def fetch_spl_transactions(session):
+    transactions = []
+    for address in TARGET_ADDRESSES:
+        url = f"https://pro-api.solscan.io/account/transactions?account={address}"
+        headers = {'accept': '*/*', 'Authorization': f"Bearer {SOLSCAN_API_KEY}"}
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
-                return {
-                    'market_cap': data.get('marketCapFD', 'Unknown'),
-                    'price_usdt': data.get('priceUsdt', 'Unknown'),
-                    'markets': data.get('markets', [])
-                }
-            else:
-                print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
-                return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
-    except Exception as e:
-        print(f"An error occurred while fetching token metadata: {e}")
-        return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
+                transactions.extend(data.get('data', []))
+    return transactions
+
+async def fetch_token_metadata(session, token_address):
+    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}"
+    headers = {'accept': '*/*', 'Authorization': f"Bearer {SOLSCAN_API_KEY}"}
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            token_data = data.get('data', [{}])[0]
+            return {
+                'name': token_data.get('name', 'Unknown'),
+                'symbol': token_data.get('symbol', 'Unknown'),
+                'market_cap': token_data.get('marketCapFD', 'Unknown'),
+                'price': token_data.get('priceUsdt', 'Unknown')
+            }
+        else:
+            print(f"Failed to fetch token data. Status code: {response.status}")
+            return None
+
+async def send_telegram_message(bot, name, symbol, address, market_cap, price):
+    text = f"""
+[IMAGE]
+Token Name: {name}
+Token Symbol: {symbol}
+Contract Address: {address}
+Market Cap: {market_cap}
+Price: {price}
+"""
+    await bot.send_message(chat_id=CHAT_ID, text=text)
 
 async def main():
-    token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
-    async with aiohttp.ClientSession() as session:
-        token_data = await fetch_token_metadata(session, token_address)
-        markets = token_data['markets']
-
-        if markets:
-            base_info = markets[0].get('base', {})
-            name = base_info.get('name', 'Unknown')
-            symbol = base_info.get('symbol', 'Unknown')
-            print(f"Token Name: {name}")
-            print(f"Symbol: {symbol}")
-        else:
-            print("No market information available or token data is incomplete.")
-
-        market_cap = token_data['market_cap']
-        if market_cap != 'Unknown':
-            print(f"Token Market Cap: ${float(market_cap):,.2f}")
-        else:
-            print("Token Market Cap: Unknown")
-
-        print(f"Price in USDT: {token_data['price_usdt']}")
+    async with aiohttp.ClientSession() as session, Bot(token=TELEGRAM_TOKEN) as bot:
+        transactions = await fetch_spl_transactions(session)
+        for tx in transactions:
+            token_address = tx.get('tokenAddress')
+            if token_address:
+                token_metadata = await fetch_token_metadata(session, token_address)
+                if token_metadata:
+                    await send_telegram_message(bot, token_metadata['name'], token_metadata['symbol'],
+                                                token_address, token_metadata['market_cap'], token_metadata['price'])
 
 if __name__ == "__main__":
     asyncio.run(main())
