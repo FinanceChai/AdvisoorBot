@@ -2,7 +2,6 @@ import aiohttp
 import asyncio
 import os
 from dotenv import load_dotenv
-from urllib.parse import quote
 
 # Load environment variables from .env file
 load_dotenv()
