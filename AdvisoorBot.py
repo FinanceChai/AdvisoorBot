@@ -17,7 +17,7 @@ async def fetch_market_cap(session, token_address):
             token_name = data.get('name', 'Unknown')
             token_symbol = data.get('symbol', 'Unknown')
             decimals = data.get('decimals', None)
-            supply = supply.get('supply',None)
+            supply = data.get('supply',None)
             Mkt_Cap = price * supply / decimals
             
             if price is not None:
