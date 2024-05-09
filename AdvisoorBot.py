@@ -64,6 +64,16 @@ async def fetch_token_metadata(session, token_address):
         print(f"An error occurred while fetching token metadata: {e}")
         return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
 
+async def send_telegram_message(bot, chat_id, text, image_path=None):
+    try:
+        if image_path:
+            with open(image_path, 'rb') as photo:
+                await bot.send_photo(chat_id=chat_id, photo=photo, caption=text, parse_mode='HTML')
+        else:
+            await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML')
+    except Exception as e:
+        print(f"Failed to send Telegram message: {e}")
+
 async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
