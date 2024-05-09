@@ -25,7 +25,7 @@ async def fetch_market_cap(session, token_address):
     return "Unknown", "Unknown", None
 
 async def main():
-    token_address = "GR8UA35VY4ZyPXxq1Xrgoy3tzguFw5BY3qFBxsNF5w4L"  # Example token address
+    token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
         token_name, token_symbol, market_cap = await fetch_market_cap(session, token_address)
         print(f"Token Name: {token_name}")
