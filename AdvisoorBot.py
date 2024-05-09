@@ -20,17 +20,13 @@ EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK", "WAVAX", "WETH", "WBTC", "Bonk"
 def get_random_image_path(image_directory):
     if not os.path.exists(image_directory):
         os.makedirs(image_directory, exist_ok=True)
-        return None
     images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
-    if images:
-        return random.choice(images)
-    else:
-        return None
+    return random.choice(images) if images else None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
-            with Image.open(image_path) as img:  # Ensure that image_path is the variable used
+            with Image.open(image_path) as img:
                 img = img.resize((200, 200), Image.Resampling.LANCZOS)
                 buf = io.BytesIO()
                 img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
@@ -49,9 +45,8 @@ async def fetch_token_metadata(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data['data']:
+            if data.get('data'):
                 token_info = data['data'][0]
-                
                 return {
                     'symbol': token_info.get('tokenSymbol', 'Unknown'),
                     'name': token_info.get('tokenName', 'Unknown'),
@@ -67,55 +62,49 @@ async def fetch_last_spl_transactions(session, address, last_signature):
         if response.status == 200:
             data = await response.json()
             if data.get('data') and data['data'][0]['signature'] != last_signature:
-                return data['data'][0]
+                transaction = data['data'][0]
+                if 'mintAddress' in transaction:  # Check if 'mintAddress' key exists
+                    return transaction
+                else:
+                    print("No mintAddress found in transaction data:", transaction)
+                    return None  # Handle missing 'mintAddress'
     return None
 
 async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
-        token_metadata = await fetch_token_metadata(session, transaction['mintAddress'])
-        token_symbol = token_metadata['tokenSymbol']
-        token_name = token_metadata['tokenName']
-        market_cap = token_metadata['marketCapFD']
-
-        if token_symbol in EXCLUDED_SYMBOLS:
-            continue
-        
-        token_address = transaction.get('mintAddress', 'Unknown')
-        owner_address = transaction.get('owner', 'Unknown')
-        message_lines.append(
-            f"Token Name: {token_name}\n"
-            f"Token Symbol: {token_symbol}\n"
-            f"Fully Diluted Market Cap: ${market_cap:,.2f}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
-        )
+        if transaction:
+            token_metadata = await fetch_token_metadata(session, transaction['mintAddress'])
+            token_symbol = token_metadata['symbol']
+            token_name = token_metadata['name']
+            market_cap = token_metadata['market_cap']
+            if token_symbol not in EXCLUDED_SYMBOLS:
+                token_address = transaction.get('mintAddress', 'Unknown')
+                owner_address = transaction.get('owner', 'Unknown')
+                message_lines.append(
+                    f"Token Name: {token_name}\n"
+                    f"Token Symbol: {token_symbol}\n"
+                    f"Fully Diluted Market Cap: ${market_cap:,.2f}\n"
+                    f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
+                    f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
+                )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     last_signature = {address: None for address in TARGET_ADDRESSES}
     async with aiohttp.ClientSession() as session:
-        # Initial fetch of transactions and update last known signatures
-        for address in TARGET_ADDRESSES:
-            transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
-            if transaction:
-                last_signature[address] = transaction['signature']
-
-        # Continuous monitoring of new transactions every minute
         while True:
-            await asyncio.sleep(60)  # Wait for a minute before checking new transactions
-            new_transactions = []
+            await asyncio.sleep(60)  # Continuous monitoring every minute
             for address in TARGET_ADDRESSES:
                 transaction = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction:
-                    new_transactions.append(transaction)
                     last_signature[address] = transaction['signature']
-            if new_transactions:
-                message = await create_message(session, new_transactions)
-                if message:
-                    image_path = get_random_image_path(IMAGE_DIRECTORY)
-                    await send_telegram_message(bot, CHAT_ID, message, image_path)
+                    new_transactions = [transaction]
+                    message = await create_message(session, new_transactions)
+                    if message:
+                        image_path = get_random_image_path(IMAGE_DIRECTORY)
+                        await send_telegram_message(bot, CHAT_ID, message, image_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
