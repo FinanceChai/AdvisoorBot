@@ -11,7 +11,9 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
-TARGET_ADDRESSES = ['List', 'of', 'predefined', 'addresses']
+TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
+IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
+EXCLUDED_SYMBOLS = {"ETH", "SOL", "BTC", "BONK", "WAVAX", "WETH", "WBTC", "Bonk", "bonk"}
 
 async def fetch_spl_transactions(session):
     transactions = []
