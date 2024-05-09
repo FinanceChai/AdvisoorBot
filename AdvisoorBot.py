@@ -76,21 +76,31 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         if transaction:
-            token_metadata = await fetch_token_metadata(session, transaction['address'])  # Ensure 'address' is the correct key
+            token_metadata = await fetch_token_metadata(session, transaction['address'])
             token_symbol = token_metadata['symbol']
             token_name = token_metadata['name']
             market_cap = token_metadata['market_cap']
+
             if token_symbol not in EXCLUDED_SYMBOLS:
-                token_address = transaction.get('address', 'Unknown')  # Ensure 'address' is the correct key
+                token_address = transaction.get('address', 'Unknown')
                 owner_address = transaction.get('owner', 'Unknown')
+
+                # Check if market_cap is a string and convert it to float for formatting
+                try:
+                    market_cap_value = float(market_cap)
+                    formatted_market_cap = f"${market_cap_value:,.2f}"
+                except ValueError:
+                    formatted_market_cap = "Unknown"  # Handle cases where conversion fails
+
                 message_lines.append(
                     f"Token Name: {token_name}\n"
                     f"Token Symbol: {token_symbol}\n"
-                    f"Fully Diluted Market Cap: ${market_cap:,.2f}\n"
+                    f"Fully Diluted Market Cap: {formatted_market_cap}\n"
                     f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
                     f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
                 )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
+
 
 
 async def main():
