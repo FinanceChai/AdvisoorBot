@@ -2,7 +2,7 @@ import os
 import asyncio
 import aiohttp
 from dotenv import load_dotenv
-from telegram import bot
+from telegram import Bot
 
 load_dotenv()
 
