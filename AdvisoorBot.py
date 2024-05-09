@@ -43,8 +43,8 @@ async def fetch_token_metadata(session, token_address):
             data = await response.json()
             return {
                 'market_cap': data.get('marketCapFD', 'Unknown'),
-                'token_name': data.get('name', 'Unknown'),
-                'token_symbol': data.get('symbol', 'Unknown')
+                'token_name': data.get('tokenName', 'Unknown'),
+                'token_symbol': data.get('tokenSymbol', 'Unknown')
             }
         return {'market_cap': 'Unknown', 'token_name': 'Unknown', 'token_symbol': 'Unknown'}
 
