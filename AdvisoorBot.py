@@ -79,7 +79,7 @@ async def create_message(session, transactions):
             token_name = token_metadata['name']
             market_cap = token_metadata['market_cap']
             if token_symbol not in EXCLUDED_SYMBOLS:
-                token_address = transaction.get('mintAddress', 'Unknown')
+                token_address = transaction.get('address', 'Unknown')
                 owner_address = transaction.get('owner', 'Unknown')
                 message_lines.append(
                     f"Token Name: {token_name}\n"
