@@ -49,7 +49,13 @@ async def main():
     async with aiohttp.ClientSession() as session:
         token_data = await fetch_token_metadata(session, token_address)
         if token_data:
-            print(f"Token Market Cap: {token_data['market_cap']}")
+            market_cap = token_data['market_cap']
+            if market_cap != 'Unknown':
+                formatted_market_cap = f"${float(market_cap):,.2f}"
+            else:
+                formatted_market_cap = "Unknown"
+
+            print(f"Token Market Cap: {formatted_market_cap}")
             print(f"Price in USDT: {token_data['price_usdt']}")
             print(f"24h Volume in USDT: {token_data['volume_usdt']}")
             print(f"24h Price Change: {token_data['price_change_24h']}")
