@@ -16,32 +16,45 @@ async def fetch_token_metadata(session, token_address):
 
     if not SOLSCAN_API_KEY:
         print("API Key is not set. Please check your .env file or environment variables.")
-        return None
+        return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
 
     try:
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
-                return data  # Returning entire JSON data for further processing in main()
+                return {
+                    'market_cap': data.get('marketCapFD', 'Unknown'),
+                    'price_usdt': data.get('priceUsdt', 'Unknown'),
+                    'markets': data.get('markets', [])
+                }
             else:
                 print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
-                return None
+                return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
     except Exception as e:
         print(f"An error occurred while fetching token metadata: {e}")
-        return None
+        return {'market_cap': 'Unknown', 'price_usdt': 'Unknown', 'markets': []}
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
         token_data = await fetch_token_metadata(session, token_address)
-        if token_data:
-            print(f"Token Market Cap: ${float(token_data['market_cap']):,.2f}" if token_data['market_cap'] != 'Unknown' else "Unknown")
-            print(f"Price in USDT: {token_data['price_usdt']}")
-        if token_data and 'markets' in token_data and len(token_data['markets']) > 0:
-            market = token_data['markets'][0]  # Safely access the first market
-            base_info = market.get('base', {})
-            print(f"Symbol: {base_info.get('symbol', 'Unknown')}")
-            print(f"Token Name: {base_info.get('name', 'Unknown')}")
+        market_cap = token_data['market_cap']
+        price_usdt = token_data['price_usdt']
+        markets = token_data['markets']
+
+        if market_cap != 'Unknown':
+            print(f"Token Market Cap: ${float(market_cap):,.2f}")
+        else:
+            print("Token Market Cap: Unknown")
+
+        print(f"Price in USDT: {price_usdt}")
+
+        if markets:
+            base_info = markets[0].get('base', {})
+            symbol = base_info.get('symbol', 'Unknown')
+            name = base_info.get('name', 'Unknown')
+            print(f"Symbol: {symbol}")
+            print(f"Token Name: {name}")
         else:
             print("No market information available or token data is incomplete.")
 
