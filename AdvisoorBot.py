@@ -81,26 +81,26 @@ async def create_message(session, transactions):
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
 async def main():
+    bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
-        # Initialize the last known signatures for each target address
         last_signature = {address: None for address in TARGET_ADDRESSES}
-
-        # Populate the initial last known signatures to prevent the first transaction from repeating
         for address in TARGET_ADDRESSES:
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
-
-        # Continuously check for new transactions
+        
         while True:
-            await asyncio.sleep(60)  # Check every minute
+            await asyncio.sleep(60)
             for address in TARGET_ADDRESSES:
                 transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction_details:
                     new_signature = transaction_details['signature']
                     token_address = transaction_details['token_address']
-                    print(f"New transaction detected for {address}. Token address: {token_address}")
-                    # Update the last known signature to the new one
+                    transactions = [transaction_details]  # List expected by create_message
+                    message = await create_message(session, transactions)
+                    if message:
+                        image_path = get_random_image_path(IMAGE_DIRECTORY)
+                        await send_telegram_message(bot, CHAT_ID, message, image_path)
                     last_signature[address] = new_signature
 
 if __name__ == "__main__":
