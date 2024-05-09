@@ -81,11 +81,11 @@ async def create_message(session, transactions):
         token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
         
         # Check if metadata was successfully fetched and proceed to construct the message
-        if token_metadata:
-            token_name = token_metadata['markets'][0]['base']['name'] if token_metadata['markets'] else 'Unknown'
-            token_symbol = token_metadata['markets'][0]['base']['symbol'] if token_metadata['markets'] else 'Unknown'
-            market_cap = token_metadata['market_cap']
-            price_usdt = token_metadata['price_usdt']
+        if token_metadata and 'markets' in token_metadata and token_metadata['markets']:
+            token_name = token_metadata['markets'][0]['base'].get('name', 'Unknown')
+            token_symbol = token_metadata['markets'][0]['base'].get('symbol', 'Unknown')
+            market_cap = token_metadata.get('market_cap', 'Unknown')
+            price_usdt = token_metadata.get('price_usdt', 'Unknown')
 
             token_address = transaction.get('tokenAddress', 'Unknown')
             owner_address = transaction.get('owner', 'Unknown')
