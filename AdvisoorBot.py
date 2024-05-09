@@ -13,13 +13,13 @@ async def fetch_market_cap(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            market_cap_fd = data.get('marketCapFD', None)
-            token_name = data.get('tokenName', 'Unknown')
-            token_symbol = data.get('tokenSymbol', 'Unknown')
+            price = data.get('price', None)
+            token_name = data.get('name', 'Unknown')
+            token_symbol = data.get('symbol', 'Unknown')
             
-            if market_cap_fd is not None:
-                formatted_market_cap = f"${market_cap_fd:,.2f}"
-                return token_name, token_symbol, formatted_market_cap
+            if price is not None:
+                formatted_price = f"${price:,.2f}"
+                return token_name, token_symbol, formatted_price
             else:
                 print("Market cap data is missing or invalid.")
     return "Unknown", "Unknown", None
