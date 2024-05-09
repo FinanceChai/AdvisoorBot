@@ -12,7 +12,7 @@ SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 async def fetch_token_metadata(session, token_address):
     """Fetches metadata for a given token address from the Solscan API."""
     url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=2"
-    headers = {'Accept': 'application/json', 'Authorization': f'Bearer {SOLSCAN_API_KEY}'}
+    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
 
     if not SOLSCAN_API_KEY:
         print("API Key is not set. Please check your .env file or environment variables.")
@@ -22,15 +22,27 @@ async def fetch_token_metadata(session, token_address):
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
-                # Extract and return the data processing...
-                return data  # Adjust according to your data extraction logic
+                return {
+                    "market_cap": data.get('marketCapFD', 'Unknown'),
+                    "price_usdt": data.get('priceUsdt', 'Unknown'),
+                    "volume_usdt": data.get('volumeUsdt', 'Unknown'),
+                    "price_change_24h": data.get('priceChange24h', 'Unknown'),
+                    "market_cap_rank": data.get('marketCapRank', 'Unknown'),
+                    "markets_info": [
+                        {
+                            "name": market.get('name', 'Unknown'),
+                            "price": market.get('price', 'Unknown'),
+                            "volume24h": market.get('volume24h', 'Unknown'),
+                            "source": market.get('source', 'Unknown')
+                        } for market in data.get('markets', [])
+                    ]
+                }
             else:
                 print(f"Failed to fetch data. Status code: {response.status}, Response: {await response.text()}")
                 return None
     except Exception as e:
         print(f"An error occurred while fetching token metadata: {e}")
         return None
-
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
