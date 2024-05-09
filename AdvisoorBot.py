@@ -25,6 +25,7 @@ async def fetch_market_cap(session, token_address):
             
             if price is not None and decimals is not None and supply is not None:
                 try:
+                    supply = int(supply)  # Convert to integer
                     mkt_cap = price * supply / decimals
                     formatted_price = f"${mkt_cap:,.2f}"
                     return token_name, token_symbol, formatted_price
@@ -33,6 +34,7 @@ async def fetch_market_cap(session, token_address):
             else:
                 print("Market cap data is missing or invalid.")
     return "Unknown", "Unknown", None
+
 
 
 
