@@ -10,28 +10,20 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={token_address}"
-    headers = {'accept': '*/*'}
-    
-    # Add API key to headers if available
-    if SOLSCAN_API_KEY:
-        headers['token'] = SOLSCAN_API_KEY
-    
+    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={safely_quote(token_address)}&limit=1"
+    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            token_data = data.get('data', {})
-            if token_data:
-                token_info = token_data[0]
-                name = token_info.get('tokenName', 'Unknown')
-                symbol = token_info.get('tokenSymbol', 'Unknown')
+            if data['data']:
+                token_info = data['data'][0]
                 market_cap = token_info.get('marketCapFD', 'Unknown')
-                return name, symbol, market_cap
-            else:
-                print("No token data found.")
-        else:
-            print(f"Failed to fetch data. Status code: {response.status}")
-        return "Unknown", "Unknown", "Unknown"
+                return {
+                    'symbol': token_info.get('tokenSymbol', 'Unknown'),
+                    'name': token_info.get('tokenName', 'Unknown'),
+                    'market_cap': market_cap
+                }
+        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
