@@ -66,13 +66,10 @@ async def main():
             print(f"Price in USDT: {token_data['price_usdt']}")
             print(f"24h Volume in USDT: {token_data['volume_usdt']}")
             print(f"24h Price Change: {token_data['price_change_24h']}")
-            print(f"Market Cap Rank: {token_data['market_cap_rank']}")
             for market in token_data['markets_info']:
-                print(f"Market Address: {market['address']}")
-                print(f"AMM ID: {market['ammId']}")
+                print(f"Contract Address: {market['address']}")
                 print(f"Symbol: {market['base']['symbol']}")
                 print(f"Token Name: {market['base']['name']}")
-                print(f"Icon URL: {market['base']['icon']}")
         else:
             print("No data available for the specified token.")
 
