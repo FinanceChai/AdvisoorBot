@@ -10,7 +10,7 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={token_address}"
+    url = f"https://pro-api.solscan.io/v1.0/tokenlist?mintAddress={token_address}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
