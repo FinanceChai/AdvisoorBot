@@ -63,7 +63,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
             data = await response.json()
             if data.get('data') and data['data'][0]['signature'] != last_signature:
                 transaction = data['data'][0]
-                if 'mintAddress' in transaction:  # Check if 'mintAddress' key exists
+                if 'address' in transaction:  # Check if 'mintAddress' key exists
                     return transaction
                 else:
                     print("No mintAddress found in transaction data:", transaction)
