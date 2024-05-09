@@ -73,15 +73,15 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
-        token_metadata = await fetch_token_metadata(session, transaction['tokenAddress'])
-        token_symbol = token_metadata['symbol']
-        token_name = token_metadata['name']
-        market_cap = token_metadata['market_cap']
+        token_metadata = await fetch_token_metadata(session, transaction['mintAddress'])
+        token_symbol = token_metadata['tokenSymbol']
+        token_name = token_metadata['tokenName']
+        market_cap = token_metadata['marketCapFD']
 
         if token_symbol in EXCLUDED_SYMBOLS:
             continue
         
-        token_address = transaction.get('tokenAddress', 'Unknown')
+        token_address = transaction.get('mintAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
         message_lines.append(
             f"Token Name: {token_name}\n"
