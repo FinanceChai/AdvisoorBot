@@ -66,10 +66,25 @@ async def create_message(session, transactions):
         token_name = token_metadata['token_name']
         token_symbol = token_metadata['token_symbol']
         market_cap = token_metadata['market_cap']
+
+        # Check if market_cap is a number and convert if necessary
+        if market_cap != 'Unknown':
+            market_cap = float(market_cap)  # Convert string to float if it's a valid number
+            formatted_market_cap = f"${market_cap:,.2f}"  # Format the number with commas and two decimal places
+        else:
+            formatted_market_cap = market_cap  # Use the string 'Unknown'
+
         token_address = transaction.get('tokenAddress', 'Unknown')
         owner_address = transaction.get('owner', 'Unknown')
+        
         message_lines.append(
-            f"Token Name: {token_name}\nToken Symbol: {token_symbol}\nToken Address: {token_address}\nOwner Address: {owner_address}\nMkt Cap: ${market_cap:,.2f}\n<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
+            f"Token Name: {token_name}\n"
+            f"Token Symbol: {token_symbol}\n"
+            f"Token Address: {token_address}\n"
+            f"Owner Address: {owner_address}\n"
+            f"Mkt Cap: {formatted_market_cap}\n"
+            f"<a href='https://solscan.io/token/{safely_quote(token_address)}'>Token Contract</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
         )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
