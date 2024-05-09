@@ -39,17 +39,6 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML')
 
-async def fetch_tokens_list(session, limit=10):
-    url = "https://pro-api.solscan.io/v1.0/token/list"
-    headers = {'accept': 'application/json', 'token': SOLSCAN_API_KEY}
-    params = {'limit': limit}
-    async with session.get(url, headers=headers, params=params) as response:
-        if response.status == 200:
-            data = await response.json()
-            return data.get('data', [])  # Returns a list of tokens
-        else:
-            return []  # Returns an empty list if the request fails
-
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
     headers = {'accept': 'application/json', 'token': SOLSCAN_API_KEY}
@@ -60,7 +49,7 @@ async def fetch_token_metadata(session, token_address):
                 token_info = data['data']
                 return {
                     'symbol': token_info.get('tokenSymbol', 'Unknown'),
-                    'name': token_info.get('TokenName', 'Unknown'),
+                    'name': token_info.get('tokenName', 'Unknown'),
                     'market_cap': token_info.get('marketCapFD', 'Unknown')
                 }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
