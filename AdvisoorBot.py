@@ -48,13 +48,11 @@ async def fetch_token_metadata(session, token_address):
             if data and 'data' in data:
                 token_info = data['data']
                 return {
-                    'symbol': token_info.get('tokenSymbol', 'Unknown'),
-                    'name': token_info.get('tokenName', 'Unknown'),
-                    'market_cap': token_info.get('marketCapFD', 'Unknown'),
-                    'mint_address': token_info.get('mintAddress', 'Unknown')
+                    'symbol': token_info.get('symbol', 'Unknown'),
+                    'name': token_info.get('name', 'Unknown'),
+                    'market_cap': token_info.get('marketCapFD', 'Unknown')
                 }
-        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown', 'mint_address': 'Unknown'}
-
+        return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
@@ -64,12 +62,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
         if response.status == 200:
             data = await response.json()
             if data.get('data') and data['data'][0]['signature'] != last_signature:
-                transaction = data['data'][0]
-                if 'address' in transaction:  # Check if 'mintAddress' key exists
-                    return transaction
-                else:
-                    print("No mintAddress found in transaction data:", transaction)
-                    return None  # Handle missing 'mintAddress'
+                return data['data'][0]
     return None
 
 async def create_message(session, transactions):
@@ -85,12 +78,11 @@ async def create_message(session, transactions):
                 token_address = transaction.get('address', 'Unknown')
                 owner_address = transaction.get('owner', 'Unknown')
 
-                # Check if market_cap is a string and convert it to float for formatting
                 try:
                     market_cap_value = float(market_cap)
                     formatted_market_cap = f"${market_cap_value:,.2f}"
                 except ValueError:
-                    formatted_market_cap = "Unknown"  # Handle cases where conversion fails
+                    formatted_market_cap = market_cap  # Handle cases where conversion fails or market cap is unknown
 
                 message_lines.append(
                     f"Token Name: {token_name}\n"
@@ -100,8 +92,6 @@ async def create_message(session, transactions):
                     f"<a href='https://solscan.io/account/{safely_quote(owner_address)}'>Owner Wallet</a>\n\n"
                 )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
-
-
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
