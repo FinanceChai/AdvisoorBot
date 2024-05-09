@@ -10,7 +10,7 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={token_address}&limit=1"
+    url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={token_address}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
@@ -25,7 +25,6 @@ async def fetch_token_metadata(session, token_address):
                     'market_cap': market_cap
                 }
         return {'symbol': 'Unknown', 'name': 'Unknown', 'market_cap': 'Unknown'}
-
 
 async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
