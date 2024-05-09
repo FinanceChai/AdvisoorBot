@@ -59,9 +59,6 @@ async def main():
             print(f"Token Address: {token_data['token_address']}")
             print(f"Token Market Cap: ${float(token_data['market_cap']):,.2f}" if token_data['market_cap'] != 'Unknown' else "Unknown")
             print(f"Price in USDT: {token_data['price_usdt']}")
-            print(f"24h Volume in USDT: {token_data['volume_usdt']}")
-            print(f"24h Price Change: {token_data['price_change_24h']}")
-            print(f"Market Cap Rank: {token_data['market_cap_rank']}")
         else:
             print("No data available for the specified token.")
 
