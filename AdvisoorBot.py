@@ -78,7 +78,7 @@ async def main():
         
         # Populate the initial last known signatures to prevent the first transaction from repeating
         for address in TARGET_ADDRESSES:
-            _, initial_signature = await fetch_last_spl_transaction(session, address, None)
+            _, initial_signature = await fetch_last_spl_transactions(session, address, None)
             if initial_signature:
                 last_signature[address] = initial_signature
         
