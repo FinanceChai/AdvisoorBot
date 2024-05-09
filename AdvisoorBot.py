@@ -38,25 +38,24 @@ async def main():
     token_address = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"  # Example token address
     async with aiohttp.ClientSession() as session:
         token_data = await fetch_token_metadata(session, token_address)
-        market_cap = token_data['market_cap']
-        price_usdt = token_data['price_usdt']
         markets = token_data['markets']
 
+        if markets:
+            base_info = markets[0].get('base', {})
+            name = base_info.get('name', 'Unknown')
+            symbol = base_info.get('symbol', 'Unknown')
+            print(f"Token Name: {name}")
+            print(f"Symbol: {symbol}")
+        else:
+            print("No market information available or token data is incomplete.")
+
+        market_cap = token_data['market_cap']
         if market_cap != 'Unknown':
             print(f"Token Market Cap: ${float(market_cap):,.2f}")
         else:
             print("Token Market Cap: Unknown")
 
-        print(f"Price in USDT: {price_usdt}")
-
-        if markets:
-            base_info = markets[0].get('base', {})
-            symbol = base_info.get('symbol', 'Unknown')
-            name = base_info.get('name', 'Unknown')
-            print(f"Symbol: {symbol}")
-            print(f"Token Name: {name}")
-        else:
-            print("No market information available or token data is incomplete.")
+        print(f"Price in USDT: {token_data['price_usdt']}")
 
 if __name__ == "__main__":
     asyncio.run(main())
