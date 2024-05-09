@@ -7,7 +7,7 @@ load_dotenv()
 SOLSCAN_API_KEY = os.getenv("SOLSCAN_API_KEY")
 
 async def fetch_market_cap(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=10&offset=0"
+    url = f"https://pro-api.solscan.io/v1.0/token/list/{token_address}?limit=10&offset=0"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
