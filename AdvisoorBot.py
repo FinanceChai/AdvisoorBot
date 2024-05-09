@@ -30,7 +30,7 @@ def get_random_image_path(image_directory):
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
-            with Image.open(image_path) as img:
+            with Image.open(image_path) as img:  # Ensure that image_path is the variable used
                 img = img.resize((200, 200), Image.Resampling.LANCZOS)
                 buf = io.BytesIO()
                 img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
@@ -41,7 +41,7 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
             print(f"Error resizing or sending image: {e}")
             await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
-        await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
+        await bot.send_message(chat_id, text=text, parse_mode='HTML')
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/token/list?mintAddress={safely_quote(token_address)}&limit=1"
