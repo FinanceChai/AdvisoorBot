@@ -40,7 +40,7 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
         await bot.send_message(chat_id, text=text, parse_mode='HTML')
 
 async def fetch_market_cap(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{token_address}?limit=10&offset=0"
+    url = f"https://pro-api.solscan.io/v1.0/token/list"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     
     async with session.get(url, headers=headers) as response:
