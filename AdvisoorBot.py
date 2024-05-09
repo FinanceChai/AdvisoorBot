@@ -39,19 +39,37 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
-async def fetch_last_transaction(session, address, last_signature):
-    """Fetches the most recent transaction for the given address and checks if it's new compared to the last_signature."""
+async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
     async with session.get(url, params=params, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if data.get('data'):
-                current_signature = data['data'][0]['signature']
-                if current_signature != last_signature:
-                    return current_signature, data['data'][0]['tokenAddress']
-    return None, None
+            if data.get('data') and data['data'][0]['signature'] != last_signature:
+                transaction_data = data['data'][0]
+                return {
+                    'signature': transaction_data['signature'],
+                    'token_address': transaction_data['tokenAddress'],
+                    'owner_address': transaction_data['owner']  # Assuming 'owner' is the key for owner address
+                }
+    return None
+
+async def create_message(session, transactions):
+    message_lines = ["🎱 New Transactions 🎱\n\n"]
+    for transaction in transactions:
+        token_metadata = await fetch_token_metadata(session, transaction['token_address'])
+        token_symbol = token_metadata.get('symbol', 'Unknown') if token_metadata else 'Unknown'
+        if token_symbol in EXCLUDED_SYMBOLS:
+            continue
+        token_name = token_metadata.get('name', 'Unknown') if token_metadata else 'Unknown'
+        message_lines.append(
+            f"Token Name: {token_name}\n"
+            f"Token Symbol: {token_symbol}\n"
+            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n\n"
+        )
+    return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
 async def main():
     async with aiohttp.ClientSession() as session:
