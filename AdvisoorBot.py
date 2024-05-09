@@ -22,7 +22,15 @@ def get_random_image_path(image_directory):
         return random.choice(images)
     else:
         return None
-        
+
+async def fetch_token_metadata(session, token_address):
+    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
+    headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            return await response.json()
+    return None
+
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
