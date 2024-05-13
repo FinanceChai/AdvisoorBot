@@ -85,19 +85,19 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        token_symbol = token_metadata.get('token_symbol', 'Unknown') if token_metadata else 'Unknown'
-        if token_symbol in EXCLUDED_SYMBOLS:
-            continue
-        token_name = token_metadata.get('token_name', 'Unknown') if token_metadata else 'Unknown'
-        twitter_handle = token_metadata.get('twitter', None)
+        if token_metadata and 'symbol' in token_metadata and 'name' in token_metadata:
+            token_symbol = token_metadata['symbol']
+            token_name = token_metadata['name']
+            if token_symbol in EXCLUDED_SYMBOLS:
+                continue
+            message_lines.append(
+                f"Token Name: {token_name}\n"
+                f"Token Symbol: {token_symbol}\n"
+                f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
+                f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n\n"
+            )
+    return '\n'.join(message_lines) if message_lines else None
 
-        message_lines.append(
-            f"Token Name: {token_name}\n"
-            f"Token Symbol: {token_symbol}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>Rug Check</a>\n"
-        )
 
         if twitter_handle:
             message_lines.append(f"<a href='https://x.com/{safely_quote(twitter_handle)}'>Twitter / X</a>\n")
