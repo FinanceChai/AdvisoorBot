@@ -24,7 +24,6 @@ def get_random_image_path(image_directory):
     images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
     return random.choice(images) if images else None
 
-# Function to fetch token metadata
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
