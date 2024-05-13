@@ -102,13 +102,6 @@ async def create_message(session, transactions):
 
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
-
-
-        if twitter_handle:
-            message_lines.append(f"<a href='https://x.com/{safely_quote(twitter_handle)}'>Twitter / X</a>\n")
-
-    return '\n'.join(message_lines) if len(message_lines) > 1 else None
-
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
