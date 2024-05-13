@@ -77,6 +77,7 @@ async def create_message(session, transactions):
             f"Token Symbol: {token_symbol}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n\n"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>Rug Check</a>\n\n"
         )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
