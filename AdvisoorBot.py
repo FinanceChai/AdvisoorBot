@@ -92,8 +92,10 @@ async def create_message(session, transactions):
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n\n"
+            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n
+            https://dexscreener.com/search?q=BW6MVG1Bw7KWQe7MNpLn1eVjmwSg3Bixh1YTSAhuQFr
         )
         # Check if there's a Twitter handle or similar social link and append it if present
         twitter_handle = token_metadata.get('twitter', None)  # Assuming Twitter handle is part of the metadata
