@@ -24,12 +24,29 @@ def get_random_image_path(image_directory):
     images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
     return random.choice(images) if images else None
 
+# Function to fetch token metadata
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/token/meta?tokenAddress={safely_quote(token_address)}"
+    url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
-            return await response.json()
+            data = await response.json()
+            # Extract the required fields from the response
+            return {
+                'mint_address': data.get('mintAddress'),
+                'token_symbol': data.get('tokenSymbol'),
+                'token_name': data.get('tokenName'),
+                'decimals': data.get('decimals'),
+                'icon_url': data.get('icon'),
+                'website': data.get('website'),
+                'twitter': data.get('twitter'),
+                'market_cap_rank': data.get('marketCapRank'),
+                'price_usdt': data.get('priceUst'),
+                'market_cap_fd': data.get('marketCapFD'),
+                'volume': data.get('volume'),
+                'coingecko_info': data.get('coingeckoInfo'),
+                'tag': data.get('tag')
+            }
     return None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
@@ -76,8 +93,9 @@ async def create_message(session, transactions):
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token Contract</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n\n"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>Rug Check</a>\n\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>Rug Check</a>\n"
+            f"<a href='x.com/{safely_quote(transaction['twitter'])}'>Twitter / X</a>\n"
         )
     return '\n'.join(message_lines) if len(message_lines) > 1 else None
 
