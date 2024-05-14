@@ -64,11 +64,7 @@ async def fetch_token_metadata(session, token_address):
 # Formatting market cap
 market_cap_display = f"${market_cap:,.2f}" if market_cap is not None else "Not available"
 
-message_lines.append(
-    f"Token Symbol: {token_symbol}\n"
-    f"Market Cap: {market_cap_display}\n\n"  # Adding formatted market cap
-    ...
-)
+
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
@@ -129,7 +125,7 @@ async def create_message(session, transactions):
         # Append token details to message lines
         message_lines.append(
             f"Token Symbol: {token_symbol}\n"
-            f"Market Cap: {market_cap}\n\n"  # Adding formatted market cap
+            f"Market Cap: {market_cap_display}\n\n"  # Adding formatted market cap
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
