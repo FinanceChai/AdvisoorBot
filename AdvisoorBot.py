@@ -50,7 +50,7 @@ async def fetch_token_metadata(session, token_address):
                     'twitter': None,  # Update if API provides this information
                     'market_cap_rank': None,  # Update if API provides this information
                     'price_usdt': market.get('price'),  # Assuming 'price' is equivalent to 'price_usdt'
-                    'market_cap_fd': market_cap_fd,  # Use the fetched value
+                    'market_cap_fd': market.get('market_cap_fd'),  # Use the fetched value
                     'volume': market.get('volume24h'),  # Assuming 'volume24h' is what you need
                     'coingecko_info': None,  # Update if API provides this information
                     'tag': None  # Update if API provides this information
@@ -62,7 +62,7 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 # Formatting market cap
-market_cap_display = f"${market_cap:,.2f}" if market_cap_fd is not None else "Not available"
+market_cap_display = f"${market_cap_fd:,.2f}" if market_cap_fd is not None else "Not available"
 
 
 
