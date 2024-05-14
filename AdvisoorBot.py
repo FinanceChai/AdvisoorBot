@@ -62,7 +62,7 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 # Formatting market cap
-market_cap_display = f"${market_cap:,.2f}" if market_cap is not None else "Not available"
+market_cap_display = f"${market_cap:,.2f}" if market_cap_fd is not None else "Not available"
 
 
 
