@@ -84,25 +84,28 @@ async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        token_symbol = token_metadata.get('token_symbol', 'Unknown') if token_metadata else 'Unknown'
-        token_name = token_metadata.get('token_name', 'Unknown') if token_metadata else 'Unknown'
+        if not token_metadata:  # Check if metadata is None and handle the case
+            message_lines.append("Failed to fetch token metadata.\n")
+            continue
+        
+        token_symbol = token_metadata.get('token_symbol', 'Unknown')
+        token_name = token_metadata.get('token_name', 'Unknown')
         if token_symbol in EXCLUDED_SYMBOLS:
             continue
+        
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n"
-            
         )
-        # Check if there's a Twitter handle or similar social link and append it if present
-        twitter_handle = token_metadata.get('twitter', None)  # Assuming Twitter handle is part of the metadata
+        
+        twitter_handle = token_metadata.get('twitter')
         if twitter_handle:
             message_lines.append(f"<a href='https://twitter.com/{safely_quote(twitter_handle)}'>Twitter</a>\n")
 
-    return '\n'.join(message_lines) if len(message_lines) > 1 else None
-
+    return '\n'.join(message_lines) if message_lines else None
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
