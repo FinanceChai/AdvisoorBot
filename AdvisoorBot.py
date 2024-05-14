@@ -93,7 +93,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     return None
 
 async def create_message(session, transactions):
-    message_lines = ["🎱 New Transactions 🎱\n\n"]
+    message_lines = ["📝 Advisoor Trade 🔮\n\n"]
     for transaction in transactions:
         # Fetch metadata for each transaction's token address
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
