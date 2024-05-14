@@ -107,6 +107,7 @@ async def create_message(session, transactions):
         # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
+        market_cap = token_metadata.get('market_cap_fd', None)
         
         # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
@@ -116,6 +117,7 @@ async def create_message(session, transactions):
         # Append token details to message lines
         message_lines.append(
             f"Token Symbol: {token_symbol}\n"
+            f"Market Cap: {market_cap}\n\n"  # Adding formatted market cap
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
