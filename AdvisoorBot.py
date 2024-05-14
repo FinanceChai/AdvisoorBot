@@ -31,24 +31,33 @@ async def fetch_token_metadata(session, token_address):
         if response.status == 200:
             data = await response.json()
             print(f"API Response: {data}")  # Debugging line to see what the API returns
-            return {
-                'mint_address': data.get('mintAddress'),
-                'token_symbol': data.get('tokenSymbol'),
-                'token_name': data.get('tokenName'),
-                'decimals': data.get('decimals'),
-                'icon_url': data.get('icon'),
-                'website': data.get('website'),
-                'twitter': data.get('twitter'),
-                'market_cap_rank': data.get('marketCapRank'),
-                'price_usdt': data.get('priceUst'),
-                'market_cap_fd': data.get('marketCapFD'),
-                'volume': data.get('volume'),
-                'coingecko_info': data.get('coingeckoInfo'),
-                'tag': data.get('tag')
-            }
+
+            # Check if 'markets' data is available and has entries
+            if 'markets' in data and data['markets']:
+                market = data['markets'][0]  # Assuming you want the first market listed
+
+                # Parse the needed data from the first market entry
+                return {
+                    'mint_address': market.get('base', {}).get('address'),
+                    'token_symbol': market.get('base', {}).get('symbol'),
+                    'token_name': market.get('base', {}).get('name'),
+                    'decimals': market.get('base', {}).get('decimals'),
+                    'icon_url': market.get('base', {}).get('icon'),
+                    'website': None,  # Update if API provides this information
+                    'twitter': None,  # Update if API provides this information
+                    'market_cap_rank': None,  # Update if API provides this information
+                    'price_usdt': market.get('price'),  # Assuming 'price' is equivalent to 'price_usdt'
+                    'market_cap_fd': None,  # Update if API provides this information
+                    'volume': market.get('volume24h'),  # Assuming 'volume24h' is what you need
+                    'coingecko_info': None,  # Update if API provides this information
+                    'tag': None  # Update if API provides this information
+                }
+            else:
+                print(f"No market data available for token: {token_address}")
         else:
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
+
 
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
