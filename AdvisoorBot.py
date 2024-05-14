@@ -36,6 +36,9 @@ async def fetch_token_metadata(session, token_address):
             if 'markets' in data and data['markets']:
                 market = data['markets'][0]  # Assuming you want the first market listed
 
+                # Attempt to fetch market cap from a likely key
+                market_cap_fd = market.get('marketCapFd')  # Update the key based on actual API response structure
+
                 # Parse the needed data from the first market entry
                 return {
                     'mint_address': market.get('base', {}).get('address'),
@@ -47,7 +50,7 @@ async def fetch_token_metadata(session, token_address):
                     'twitter': None,  # Update if API provides this information
                     'market_cap_rank': None,  # Update if API provides this information
                     'price_usdt': market.get('price'),  # Assuming 'price' is equivalent to 'price_usdt'
-                    'market_cap_fd': None,  # Update if API provides this information
+                    'market_cap_fd': market_cap_fd,  # Use the fetched value
                     'volume': market.get('volume24h'),  # Assuming 'volume24h' is what you need
                     'coingecko_info': None,  # Update if API provides this information
                     'tag': None  # Update if API provides this information
@@ -57,6 +60,15 @@ async def fetch_token_metadata(session, token_address):
         else:
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
+
+# Formatting market cap
+market_cap_display = f"${market_cap:,.2f}" if market_cap is not None else "Not available"
+
+message_lines.append(
+    f"Token Symbol: {token_symbol}\n"
+    f"Market Cap: {market_cap_display}\n\n"  # Adding formatted market cap
+    ...
+)
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
