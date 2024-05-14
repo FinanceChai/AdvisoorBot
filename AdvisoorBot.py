@@ -86,16 +86,27 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 async def create_message(session, transactions):
     message_lines = ["🎱 New Transactions 🎱\n\n"]
     for transaction in transactions:
+        # Fetch metadata for each transaction's token address
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        if not token_metadata:  # Check if metadata is None and handle the case
+        
+        # Debugging: Print the fetched metadata
+        print(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        
+        # Check if metadata was successfully fetched
+        if not token_metadata:
             message_lines.append("Failed to fetch token metadata.\n")
             continue
         
+        # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
+        
+        # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
+            print(f"Skipping excluded symbol: {token_symbol}")  # Debugging line
             continue
         
+        # Append token details to message lines
         message_lines.append(
             f"Token Name: {token_name}\n"
             f"Token Symbol: {token_symbol}\n"
@@ -104,11 +115,17 @@ async def create_message(session, transactions):
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n"
         )
         
+        # Add Twitter link if available
         twitter_handle = token_metadata.get('twitter')
         if twitter_handle:
             message_lines.append(f"<a href='https://twitter.com/{safely_quote(twitter_handle)}'>Twitter</a>\n")
 
-    return '\n'.join(message_lines) if message_lines else None
+    # Debugging: Print final message before returning
+    final_message = '\n'.join(message_lines)
+    print(f"Final Message: {final_message}")
+    
+    return final_message if len(message_lines) > 1 else None
+
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
