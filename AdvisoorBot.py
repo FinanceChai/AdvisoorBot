@@ -30,7 +30,7 @@ async def fetch_token_metadata(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            # Extract the required fields from the response
+            print(f"API Response: {data}")  # Debugging line to see what the API returns
             return {
                 'mint_address': data.get('mintAddress'),
                 'token_symbol': data.get('tokenSymbol'),
@@ -46,7 +46,10 @@ async def fetch_token_metadata(session, token_address):
                 'coingecko_info': data.get('coingeckoInfo'),
                 'tag': data.get('tag')
             }
+        else:
+            print(f"Failed to fetch metadata, status code: {response.status}")
     return None
+
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
