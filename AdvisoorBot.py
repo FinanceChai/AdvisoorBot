@@ -104,7 +104,7 @@ async def create_message(session, transactions):
         
         # Check if metadata was successfully fetched
         if not token_metadata:
-            message_lines.append("Failed to fetch token metadata.\n")
+            message_lines.append("Failed to fetch ca {safely_quote(transaction['token_address'])}. Might be a future launch!\n")
             continue
         
         # Extract token details with default values if keys are missing
