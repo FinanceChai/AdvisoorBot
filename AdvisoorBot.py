@@ -115,7 +115,10 @@ async def create_message(session, transactions):
         # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
-        market_cap = token_metadata.get('market_cap_fd', None)
+        market_cap_fd = token_metadata.get('market_cap_fd', None)  # Get the market cap from metadata
+        
+        # Format the market cap
+        market_cap_display = f"${market_cap_fd:,.2f}" if market_cap_fd is not None else "Not available"
         
         # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
