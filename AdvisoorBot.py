@@ -61,11 +61,6 @@ async def fetch_token_metadata(session, token_address):
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
 
-# Formatting market cap
-market_cap_display = f"${market_cap_fd:,.2f}" if market_cap_fd is not None else "Not available"
-
-
-
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
