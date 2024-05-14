@@ -58,8 +58,6 @@ async def fetch_token_metadata(session, token_address):
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
 
-
-
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
