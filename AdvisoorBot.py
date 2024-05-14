@@ -118,10 +118,11 @@ async def create_message(session, transactions):
         # Append token details to message lines
         message_lines.append(
             f"Token Name: {token_name}\n"
-            f"Token Symbol: {token_symbol}\n"
+            f"Token Symbol: {token_symbol}\n\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
+            f"<a href='https://t.me/solana_trojanbot?start=r-0xrubberd319503'>🔥 Trade with Trojan Bot 🔥</a>\n"
         )
         
         # Add Twitter link if available
