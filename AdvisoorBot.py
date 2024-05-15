@@ -124,11 +124,13 @@ async def create_message(session, transactions):
         # Extract and format transaction amount
         transaction_amount = transaction['amount']
         source_token = transaction['source_token']
+        ticker = transaction['ticker']
         amount_display = f"{transaction_amount} {source_token}"
         
         # Append token details to message lines
         message_lines.append(
             f"Ticker: {ticker}\n"
+            f"Amount: {amount_display}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
