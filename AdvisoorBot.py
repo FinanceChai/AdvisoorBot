@@ -17,6 +17,8 @@ TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
 EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
+message_counter = 0  # Global counter to keep track of the number of messages sent
+
 def get_random_image_path(image_directory):
     if not os.path.exists(image_directory):
         os.makedirs(image_directory, exist_ok=True)
@@ -61,7 +63,8 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
-    if image_path:
+    global message_counter
+    if image_path and message_counter % 10 == 0:  # Send image every 10 messages
         try:
             with Image.open(image_path) as img:
                 img = img.resize((200, 200), Image.Resampling.LANCZOS)
@@ -75,6 +78,8 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
             await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
         await bot.send_message(chat_id, text=text, parse_mode='HTML')
+
+    message_counter += 1  # Increment the message counter after sending
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
