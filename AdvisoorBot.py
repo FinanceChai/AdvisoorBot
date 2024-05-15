@@ -32,8 +32,6 @@ async def fetch_token_metadata(session, token_address):
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            print(f"API Response: {data}")  # Debugging line to see what the API returns
-
             # Check if 'markets' data is available and has entries
             if 'markets' in data and data['markets']:
                 market = data['markets'][0]  # Assuming you want the first market listed
