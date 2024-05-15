@@ -53,7 +53,6 @@ async def fetch_token_metadata(session, token_address):
                     'tag': None  # Update if API provides this information
                 }
 
-                print(f"Token Metadata: {result}")
                 return result
             else:
                 print(f"No market data available for token: {token_address}")
