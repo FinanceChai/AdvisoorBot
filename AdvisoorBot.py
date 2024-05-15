@@ -85,18 +85,13 @@ async def create_message(session, transactions):
         # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
+        ticker = token_metadata.get('ticker', 'Unknown')
 
         # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
             print(f"Skipping excluded symbol: {token_symbol}")  # Debugging line
             continue
-        
-        # Extract and format transaction amount
-        transaction_amount = transaction['amount']
-        source_token = transaction['source_token']
-        ticker = transaction['ticker']
-        amount_display = f"{transaction_amount} {source_token}"
-        
+             
         # Append token details to message lines
         message_lines.append(
             f"Ticker: {ticker}\n"
