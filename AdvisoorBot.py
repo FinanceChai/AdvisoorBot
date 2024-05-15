@@ -72,12 +72,12 @@ async def send_telegram_message(bot, chat_id, text, image_path=None):
                 img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
                 img.save(buf, format=img_format)
                 buf.seek(0)
-                await bot.send_photo(chat_id, photo=buf, caption=text, parse_mode='HTML')
+                await bot.send_photo(chat_id, photo=buf, caption=text, parse_mode='HTML', disable_web_page_preview=True)
         except Exception as e:
             print(f"Error resizing or sending image: {e}")
             await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
     else:
-        await bot.send_message(chat_id, text=text, parse_mode='HTML')
+        await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
     message_counter += 1  # Increment the message counter after sending
 
