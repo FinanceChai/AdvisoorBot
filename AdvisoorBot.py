@@ -93,7 +93,8 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                     'token_address': transaction_data['tokenAddress'],
                     'owner_address': transaction_data['owner'],  # Assuming 'owner' is the key for owner address
                     'amount': transaction_data.get('amount', 0),  # Assuming 'amount' is the key for the token amount
-                    'source_token': transaction_data.get('sourceToken', 'Unknown')  # Assuming 'sourceToken' indicates SOL or WSOL
+                    'source_token': transaction_data.get('sourceToken', 'Unknown'),  # Assuming 'sourceToken' indicates SOL or WSOL
+                    'ticker': transaction_data.get('tokenSymbol', 'Unknown')  # Assuming 'tokenSymbol' is the key for the ticker
                 }
     return None
 
@@ -127,7 +128,7 @@ async def create_message(session, transactions):
         
         # Append token details to message lines
         message_lines.append(
-            f"Ticker: {token_symbol}\n"
+            f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
