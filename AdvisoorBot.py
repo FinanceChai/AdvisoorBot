@@ -61,7 +61,6 @@ async def fetch_token_metadata(session, token_address):
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
 
-
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
         try:
@@ -90,7 +89,9 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                 return {
                     'signature': transaction_data['signature'],
                     'token_address': transaction_data['tokenAddress'],
-                    'owner_address': transaction_data['owner']  # Assuming 'owner' is the key for owner address
+                    'owner_address': transaction_data['owner'],  # Assuming 'owner' is the key for owner address
+                    'amount': transaction_data.get('amount', 0),  # Assuming 'amount' is the key for the token amount
+                    'source_token': transaction_data.get('sourceToken', 'Unknown')  # Assuming 'sourceToken' indicates SOL or WSOL
                 }
     return None
 
@@ -105,26 +106,27 @@ async def create_message(session, transactions):
         
         # Check if metadata was successfully fetched
         if not token_metadata:
-            message_lines.append(f"Failed to fetch ca {token_address}. Maybe be a future launch!?\n")
+            message_lines.append(f"Failed to fetch ca {transaction['token_address']}. Maybe be a future launch!?\n")
             continue
         
         # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
-        market_cap_fd = token_metadata.get('market_cap_fd', None)  # Get the market cap from metadata
-        
-        # Format the market cap
-        market_cap_display = f"${market_cap_fd:,.2f}" if market_cap_fd is not None else "Not available"
-        
+
         # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
             print(f"Skipping excluded symbol: {token_symbol}")  # Debugging line
             continue
         
+        # Extract and format transaction amount
+        transaction_amount = transaction['amount']
+        source_token = transaction['source_token']
+        amount_display = f"{transaction_amount} {source_token}"
+        
         # Append token details to message lines
         message_lines.append(
             f"Token Symbol: {token_symbol}\n"
-            f"Market Cap: {market_cap_display}\n\n"  # Adding formatted market cap
+            f"Amount: {amount_display}\n\n"  # Adding formatted transaction amount
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
