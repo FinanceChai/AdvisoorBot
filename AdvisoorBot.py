@@ -1,11 +1,8 @@
 import os
-import io
 import asyncio
-import random
 import aiohttp
 from dotenv import load_dotenv
 from telegram import Bot
-from PIL import Image
 from urllib.parse import quote as safely_quote
 
 load_dotenv()
@@ -14,17 +11,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
-IMAGE_DIRECTORY = os.path.abspath('/root/advisoorbot/Memes')
 EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
-
-message_counter = 0  # Global counter to keep track of the number of messages sent
-
-def get_random_image_path(image_directory):
-    if not os.path.exists(image_directory):
-        os.makedirs(image_directory, exist_ok=True)
-        return None
-    images = [os.path.join(image_directory, file) for file in os.listdir(image_directory) if file.endswith(('.png', '.jpg', '.jpeg'))]
-    return random.choice(images) if images else None
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
@@ -60,24 +47,8 @@ async def fetch_token_metadata(session, token_address):
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
 
-async def send_telegram_message(bot, chat_id, text, image_path=None):
-    global message_counter
-    if image_path and message_counter % 10 == 0:  # Send image every 10 messages
-        try:
-            with Image.open(image_path) as img:
-                img = img.resize((200, 200), Image.Resampling.LANCZOS)
-                buf = io.BytesIO()
-                img_format = 'JPEG' if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg') else 'PNG'
-                img.save(buf, format=img_format)
-                buf.seek(0)
-                await bot.send_photo(chat_id, photo=buf, caption=text, parse_mode='HTML', disable_web_page_preview=True)
-        except Exception as e:
-            print(f"Error resizing or sending image: {e}")
-            await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
-    else:
-        await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
-
-    message_counter += 1  # Increment the message counter after sending
+async def send_telegram_message(bot, chat_id, text):
+    await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True)
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
@@ -92,9 +63,8 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                     'signature': transaction_data['signature'],
                     'token_address': transaction_data['tokenAddress'],
                     'owner_address': transaction_data['owner'],  # Assuming 'owner' is the key for owner address
-                    'amount': transaction_data.get('amount', 0),  # Assuming 'amount' is the key for the token amount
                     'source_token': transaction_data.get('sourceToken', 'Unknown'),  # Assuming 'sourceToken' indicates SOL or WSOL
-                    'ticker': transaction_data.get('tokenSymbol', 'Unknown')  # Assuming 'tokenSymbol' is the key for the ticker
+                    'ticker': transaction_data.get('symbol', 'Unknown')  # Assuming 'tokenSymbol' is the key for the ticker
                 }
     return None
 
@@ -130,7 +100,6 @@ async def create_message(session, transactions):
         # Append token details to message lines
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"Amount: {amount_display}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
@@ -166,8 +135,7 @@ async def main():
                     transactions = [transaction_details]  # List expected by create_message
                     message = await create_message(session, transactions)
                     if message:
-                        image_path = get_random_image_path(IMAGE_DIRECTORY)
-                        await send_telegram_message(bot, CHAT_ID, message, image_path)
+                        await send_telegram_message(bot, CHAT_ID, message)
                     last_signature[address] = new_signature
 
 if __name__ == "__main__":
