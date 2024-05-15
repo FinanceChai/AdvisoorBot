@@ -36,11 +36,8 @@ async def fetch_token_metadata(session, token_address):
             if 'markets' in data and data['markets']:
                 market = data['markets'][0]  # Assuming you want the first market listed
 
-                # Attempt to fetch market cap from a likely key
-                market_cap_fd = market.get('marketCapFd')  # Update the key based on actual API response structure
-
                 # Parse the needed data from the first market entry
-                return {
+                result = {
                     'mint_address': market.get('base', {}).get('address'),
                     'token_symbol': market.get('base', {}).get('symbol'),
                     'token_name': market.get('base', {}).get('name'),
@@ -55,11 +52,15 @@ async def fetch_token_metadata(session, token_address):
                     'coingecko_info': None,  # Update if API provides this information
                     'tag': None  # Update if API provides this information
                 }
+
+                print(f"Token Metadata: {result}")
+                return result
             else:
                 print(f"No market data available for token: {token_address}")
         else:
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
+
 
 async def send_telegram_message(bot, chat_id, text, image_path=None):
     if image_path:
