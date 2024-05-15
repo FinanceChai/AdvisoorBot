@@ -64,7 +64,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                     'token_address': transaction_data['tokenAddress'],
                     'owner_address': transaction_data['owner'],  # Assuming 'owner' is the key for owner address
                     'source_token': transaction_data.get('sourceToken', 'Unknown'),  # Assuming 'sourceToken' indicates SOL or WSOL
-                    'ticker': transaction_data.get('symbol', 'Unknown')  # Assuming 'tokenSymbol' is the key for the ticker
+                    'ticker': transaction_data.get('symbol', 'Unknown')  # Assuming 'symbol' is the key for the ticker
                 }
     return None
 
@@ -85,7 +85,7 @@ async def create_message(session, transactions):
         # Extract token details with default values if keys are missing
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
-        ticker = token_metadata.get('ticker', 'Unknown')
+        ticker = transaction['ticker']  # Use the ticker directly from the transaction data
 
         # Skip adding details for excluded symbols
         if token_symbol in EXCLUDED_SYMBOLS:
