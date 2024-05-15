@@ -96,7 +96,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     return None
 
 async def create_message(session, transactions):
-    message_lines = ["📝 Advisoor Trade 🔮\n\n"]
+    message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         # Fetch metadata for each transaction's token address
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
@@ -125,12 +125,11 @@ async def create_message(session, transactions):
         
         # Append token details to message lines
         message_lines.append(
-            f"Token Symbol: {token_symbol}\n"
-            f"Amount: {amount_display}\n\n"  # Adding formatted transaction amount
+            f"Ticker: {token_symbol}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
-            f"<a href='https://t.me/solana_trojanbot?start=r-0xrubberd319503'>🔥 Trade with Trojan Bot 🔥</a>\n\n"
+            f"<a href='https://t.me/solana_trojanbot?start=r-0xrubberd319503'>🔥 Trade with Trojan Bot 🔥</a>\n"
         )
         
         # Add Twitter link if available
