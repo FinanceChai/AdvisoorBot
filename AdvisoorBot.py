@@ -79,7 +79,11 @@ async def create_message(session, transactions):
         
         # Check if metadata was successfully fetched
         if not token_metadata:
-            message_lines.append(f"Failed to fetch ca {transaction['token_address']}. Maybe be a future launch!?\n")
+            
+            message_lines.append(
+                f"LP Sniping Opportunity 🔫"
+                f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
+            )
             continue
         
         # Extract token details with default values if keys are missing
