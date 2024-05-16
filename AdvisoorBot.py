@@ -91,14 +91,16 @@ async def create_message(session, transactions):
             print(f"Skipping excluded symbol: {token_symbol}")
             continue
         
-        last_five_chars = transaction['owner_address'][-5:]
+        last_five_chars_owner = transaction['owner_address'][-5:]
+        last_five_chars_token = transaction['token_address'][-5:]
+
         
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> -{last_five_chars}\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
+            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> -{last_five_chars_token}\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> -{last_five_chars_owner}\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
         )
         
         twitter_handle = token_metadata.get('twitter')
