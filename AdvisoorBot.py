@@ -4,7 +4,7 @@ import aiohttp
 from dotenv import load_dotenv
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
 from urllib.parse import quote as safely_quote
-from telegram.ext import Application, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler
 
 load_dotenv()
 
@@ -14,7 +14,7 @@ SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
-application = Application.builder().token(TELEGRAM_TOKEN).build()
+application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
