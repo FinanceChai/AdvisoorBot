@@ -79,7 +79,6 @@ async def create_message(session, transactions):
         
         # Check if metadata was successfully fetched
         if not token_metadata:
-            
             message_lines.append(
                 f"LP Sniping Opportunity 🔫"
                 f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
@@ -95,12 +94,15 @@ async def create_message(session, transactions):
         if token_symbol in EXCLUDED_SYMBOLS:
             print(f"Skipping excluded symbol: {token_symbol}")  # Debugging line
             continue
-             
+        
+        # Extract the last five characters of the owner address
+        last_five_chars = transaction['owner_address'][-5:]
+        
         # Append token details to message lines
         message_lines.append(
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a>\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> -{last_five_chars}\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n\n"
             f"<a href='https://t.me/solana_trojanbot?start=r-0xrubberd319503'>🔥 Trade with Trojan Bot 🔥</a>\n"
         )
