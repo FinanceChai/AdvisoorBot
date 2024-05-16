@@ -4,7 +4,7 @@ import aiohttp
 from dotenv import load_dotenv
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
 from urllib.parse import quote as safely_quote
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Application, CommandHandler
 
 load_dotenv()
 
@@ -14,8 +14,7 @@ SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
-updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
-dispatcher = updater.dispatcher
+application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
@@ -112,9 +111,9 @@ async def create_message(session, transactions):
     if len(message_lines) > 1:
         keyboard = [
             [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
-             InlineKeyboardButton("Photon", url="https://google.com")],
-            [InlineKeyboardButton("Bonkbot", url="https://google.com"),
-             InlineKeyboardButton("BananaGun", url="https://google.com")]
+             InlineKeyboardButton("Photon", url="https://example.com/photon")],
+            [InlineKeyboardButton("Bonkbot", url="https://example.com/bonkbot"),
+             InlineKeyboardButton("BananaGun", url="https://example.com/bananagun")]
         ]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
