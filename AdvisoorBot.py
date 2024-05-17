@@ -170,4 +170,10 @@ async def main():
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
                     message, reply_markup = await create_message(session, transactions)
-  
+                    if message:
+                        await send_telegram_message(bot, CHAT_ID, message, reply_markup)
+                    last_signature[address] = new_signature
+
+if __name__ == "__main__":
+    application.add_handler(CallbackQueryHandler(handle_copy))
+    asyncio.run(main())
