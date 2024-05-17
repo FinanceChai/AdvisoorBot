@@ -71,11 +71,12 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
-    logger.info(f"Fetching transactions with params: {params}")
+    logger.info(f"Fetching transactions for address {address} with params: {params}")
     try:
         async with session.get(url, params=params, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
+                logger.info(f"Response data for {address}: {data}")
                 if data.get('data') and data['data'][0]['signature'] != last_signature:
                     transaction_data = data['data'][0]
                     return {
@@ -161,12 +162,14 @@ async def main():
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
+                logger.info(f"Initial transaction details for {address}: {transaction_details}")
 
         while True:
             await asyncio.sleep(60)
             for address in valid_addresses:
                 transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction_details:
+                    logger.info(f"New transaction details for {address}: {transaction_details}")
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
                     message, reply_markup = await create_message(session, transactions)
