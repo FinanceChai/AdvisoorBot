@@ -57,23 +57,33 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
-    async with session.get(url, params=params, headers=headers) as response:
-        if response.status == 200:
-            data = await response.json()
-            if data.get('data') and data['data'][0]['signature'] != last_signature:
-                transaction_data = data['data'][0]
-                return {
-                    'signature': transaction_data['signature'],
-                    'token_address': transaction_data['tokenAddress'],
-                    'owner_address': transaction_data['owner'],
-                    'source_token': transaction_data.get('sourceToken', 'Unknown'),
-                    'ticker': transaction_data.get('symbol', 'Unknown')
-                }
+    try:
+        async with session.get(url, params=params, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data.get('data') and data['data'][0]['signature'] != last_signature:
+                    transaction_data = data['data'][0]
+                    print(f"Transaction fetched: {transaction_data}")
+                    return {
+                        'signature': transaction_data['signature'],
+                        'token_address': transaction_data['tokenAddress'],
+                        'owner_address': transaction_data['owner'],
+                        'source_token': transaction_data.get('sourceToken', 'Unknown'),
+                        'ticker': transaction_data.get('symbol', 'Unknown')
+                    }
+            else:
+                print(f"Error: Failed to fetch transactions, status code: {response.status}")
+    except Exception as e:
+        print(f"Error: Exception occurred while fetching transactions for address {address} - {e}")
     return None
 
 async def create_message(session, transactions):
     message_lines = ["📝 Advisoor Trade 🔮\n"]
     buttons = []
+
+    if not transactions:
+        print("No transactions to process.")
+        return None, None
 
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
@@ -146,6 +156,7 @@ async def main():
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
+            print(f"Initial transaction details for {address}: {transaction_details}")
 
         while True:
             await asyncio.sleep(60)
@@ -154,10 +165,13 @@ async def main():
                 if transaction_details:
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
+                    print(f"New transaction details for {address}: {transactions}")
                     message, reply_markup = await create_message(session, transactions)
                     if message:
                         await send_telegram_message(bot, CHAT_ID, message, reply_markup)
                     last_signature[address] = new_signature
+                else:
+                    print(f"No new transactions for {address}")
 
 if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(handle_copy))
