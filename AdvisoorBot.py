@@ -21,6 +21,7 @@ async def fetch_token_metadata(session, token_address):
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     try:
         async with session.get(url, headers=headers) as response:
+            print(f"Fetching metadata for {token_address}")
             if response.status == 200:
                 data = await response.json()
                 if 'metadata' in data and 'data' in data['metadata']:
@@ -41,6 +42,7 @@ async def fetch_token_metadata(session, token_address):
                         'coingecko_info': None,
                         'tag': None
                     }
+                    print(f"Metadata fetched for {token_address}: {result}")
                     return result
                 else:
                     print(f"Error: No metadata available for token: {token_address}")
@@ -51,13 +53,19 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 async def send_telegram_message(bot, chat_id, text, reply_markup):
-    await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=reply_markup)
+    try:
+        print(f"Sending message to chat_id {chat_id}")
+        await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=reply_markup)
+        print(f"Message sent to chat_id {chat_id}")
+    except Exception as e:
+        print(f"Error: Exception occurred while sending message - {e}")
 
 async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
     try:
+        print(f"Fetching last SPL transactions for {address}")
         async with session.get(url, params=params, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
@@ -71,6 +79,8 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                         'source_token': transaction_data.get('sourceToken', 'Unknown'),
                         'ticker': transaction_data.get('symbol', 'Unknown')
                     }
+                else:
+                    print(f"No new transactions found for {address}")
             else:
                 print(f"Error: Failed to fetch transactions, status code: {response.status}")
     except Exception as e:
