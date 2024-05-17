@@ -63,6 +63,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
+    logger.info(f"Fetching transactions with params: {params}")
     try:
         async with session.get(url, params=params, headers=headers) as response:
             if response.status == 200:
@@ -78,6 +79,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                     }
             else:
                 logger.error(f"Failed to fetch transactions, status code: {response.status}")
+                logger.error(await response.text())  # Log the response text for more details
     except Exception as e:
         logger.error(f"Exception occurred while fetching transactions for address {address} - {e}")
     return None
