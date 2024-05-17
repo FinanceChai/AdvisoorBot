@@ -19,32 +19,35 @@ application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/account/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
-    async with session.get(url, headers=headers) as response:
-        if response.status == 200:
-            data = await response.json()
-            if 'metadata' in data and 'data' in data['metadata']:
-                metadata = data['metadata']['data']
-                result = {
-                    'mint_address': token_address,
-                    'token_symbol': metadata.get('symbol', 'Unknown'),
-                    'token_name': metadata.get('name', 'Unknown'),
-                    'decimals': data.get('tokenInfo', {}).get('decimals'),
-                    'icon_url': metadata.get('image'),
-                    'website': metadata.get('website'),
-                    'twitter': metadata.get('twitter'),
-                    'telegram': metadata.get('telegram'),
-                    'market_cap_rank': None,
-                    'price_usdt': None,
-                    'market_cap_fd': None,
-                    'volume': None,
-                    'coingecko_info': None,
-                    'tag': None
-                }
-                return result
+    try:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                if 'metadata' in data and 'data' in data['metadata']:
+                    metadata = data['metadata']['data']
+                    result = {
+                        'mint_address': token_address,
+                        'token_symbol': metadata.get('symbol', 'Unknown'),
+                        'token_name': metadata.get('name', 'Unknown'),
+                        'decimals': data.get('tokenInfo', {}).get('decimals'),
+                        'icon_url': metadata.get('image'),
+                        'website': metadata.get('website'),
+                        'twitter': metadata.get('twitter'),
+                        'telegram': metadata.get('telegram'),
+                        'market_cap_rank': None,
+                        'price_usdt': None,
+                        'market_cap_fd': None,
+                        'volume': None,
+                        'coingecko_info': None,
+                        'tag': None
+                    }
+                    return result
+                else:
+                    print(f"Error: No metadata available for token: {token_address}")
             else:
-                print(f"No metadata available for token: {token_address}")
-        else:
-            print(f"Failed to fetch metadata, status code: {response.status}")
+                print(f"Error: Failed to fetch metadata, status code: {response.status}")
+    except Exception as e:
+        print(f"Error: Exception occurred while fetching metadata for token {token_address} - {e}")
     return None
 
 async def send_telegram_message(bot, chat_id, text, reply_markup):
@@ -73,7 +76,10 @@ async def create_message(session, transactions):
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
         
-        print(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        if token_metadata:
+            print(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        else:
+            print(f"Error: Metadata for {transaction['token_address']} could not be retrieved")
         
         if not token_metadata:
             message_lines.append(
@@ -98,16 +104,16 @@ async def create_message(session, transactions):
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
         )
 
         if token_metadata.get('website'):
             message_lines.append(f"🌐 Website: <a href='{token_metadata['website']}'>{token_metadata['website']}</a>\n")
         if token_metadata.get('twitter'):
-            message_lines.append(f"🐥 Twitter: <a href='{token_metadata['twitter']}'>{token_metadata['twitter']}</a>\n")
+            message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{token_metadata['twitter']}</a>\n")
         if token_metadata.get('telegram'):
-            message_lines.append(f"✉️ Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
+            message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
