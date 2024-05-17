@@ -4,7 +4,7 @@ import aiohttp
 from dotenv import load_dotenv
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes
 
 load_dotenv()
 
@@ -73,14 +73,16 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 
 async def create_message(session, transactions):
     message_lines = ["📝 Advisoor Trade 🔮\n"]
+    buttons = []
+
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        
+
         if token_metadata:
             print(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
         else:
             print(f"Error: Metadata for {transaction['token_address']} could not be retrieved")
-        
+
         if not token_metadata:
             message_lines.append(
                 f"🔫 LP Sniping Opportunity 🔫\n\n"
@@ -88,7 +90,7 @@ async def create_message(session, transactions):
                 f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
             continue
-        
+
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
         ticker = transaction['ticker']
@@ -96,28 +98,28 @@ async def create_message(session, transactions):
         if token_symbol in EXCLUDED_SYMBOLS:
             print(f"Skipping excluded symbol: {token_symbol}")
             continue
-        
+
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
-        
+
         message_lines.append(
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
         )
 
         if token_metadata.get('website'):
             message_lines.append(f"🌐 Website: <a href='{token_metadata['website']}'>{token_metadata['website']}</a>\n")
         if token_metadata.get('twitter'):
-            message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{token_metadata['twitter']}</a>\n")
+            twitter_username = token_metadata['twitter'].rstrip('/').split('/')[-1]
+            message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{twitter_username}</a>\n")
+            message_lines.append(f"<a href='https://app.tweetscout.io/search?q={twitter_username}'>TweetScout</a>\n")
         if token_metadata.get('telegram'):
             message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
-        
-        message_lines.append(
-            f"<a href='https://t.me/share/url?url={transaction['token_address']}&text=Copy%20Token%20Address'>Click to Copy Token Address</a>"
-        )
+
+        buttons.append([InlineKeyboardButton("Click to Copy Token Address", callback_data=f"copy_{transaction['token_address']}")])
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
@@ -130,16 +132,16 @@ async def create_message(session, transactions):
              InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
         ]
 
-        main_reply_markup = InlineKeyboardMarkup(main_keyboard)
+        main_reply_markup = InlineKeyboardMarkup(main_keyboard + buttons)
         return final_message, main_reply_markup
     else:
         return None, None
 
 async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer("Token address copied!", show_alert=True)
     token_address = query.data.split('_')[1]
-    await query.message.reply_text(f"Token Address: {token_address}")
+    await query.message.reply_text(f"Token Address: <code>{token_address}</code>", parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
