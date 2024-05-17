@@ -106,8 +106,8 @@ async def create_message(session, transactions):
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
         )
 
         if token_metadata.get('website'):
@@ -115,33 +115,28 @@ async def create_message(session, transactions):
         if token_metadata.get('twitter'):
             twitter_username = token_metadata['twitter'].rstrip('/').split('/')[-1]
             message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{twitter_username}</a>\n")
-            message_lines.append(f"<a href='https://app.tweetscout.io/search?q={twitter_username}'>📝 TweetScout</a>\n")
+            message_lines.append(f"✒️ TweetScout: <a href='https://app.tweetscout.io/search?q={twitter_username}'>Check Score</a>\n")
         if token_metadata.get('telegram'):
             message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
 
-        buttons.append([InlineKeyboardButton("Click to Copy Token Address", callback_data=f"copy_{transaction['token_address']}")])
+        buttons.append([InlineKeyboardButton("Copy CA", callback_data=f"copy_{transaction['token_address']}")])
+        buttons.append([InlineKeyboardButton("Copy Buyer Address", callback_data=f"copy_{transaction['owner_address']}")])
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
-        main_keyboard = [
-            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
-             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
-             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
-        ]
-
-        main_reply_markup = InlineKeyboardMarkup(main_keyboard + buttons)
-        return final_message, main_reply_markup
+        reply_markup = InlineKeyboardMarkup(buttons)
+        return final_message, reply_markup
     else:
         return None, None
 
 async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer("Token address copied!", show_alert=True)
-    token_address = query.data.split('_')[1]
-    await query.message.reply_text(f"Token Address: <code>{token_address}</code>", parse_mode='HTML')
+    await query.answer("Address copied!", show_alert=True)
+    address_type, address = query.data.split('_')[0], query.data.split('_')[1]
+    address_type_text = "Contract Address" if address_type == "copy" else "Buyer Address"
+    await query.message.reply_text(f"{address_type_text}: <code>{address}</code>", parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
@@ -166,4 +161,4 @@ async def main():
 
 if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(handle_copy))
-    asyncio.run(main())
+    application.run_polling()
