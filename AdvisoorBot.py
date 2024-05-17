@@ -1,16 +1,10 @@
 import os
 import asyncio
 import aiohttp
-import logging
-import base58
 from dotenv import load_dotenv
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -22,46 +16,38 @@ EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-def is_valid_solana_address(address):
-    try:
-        base58.b58decode(address)
-        return True
-    except ValueError:
-        return False
-
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
+    url = f"https://pro-api.solscan.io/v1.0/account/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     try:
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
-                if 'markets' in data and data['markets']:
-                    market = data['markets'][0]  # Assuming you want the first market listed
-
+                if 'metadata' in data and 'data' in data['metadata']:
+                    metadata = data['metadata']['data']
                     result = {
-                        'mint_address': market.get('base', {}).get('address'),
-                        'token_symbol': market.get('base', {}).get('symbol'),
-                        'token_name': market.get('base', {}).get('name'),
-                        'decimals': market.get('base', {}).get('decimals'),
-                        'icon_url': market.get('base', {}).get('icon'),
-                        'website': None,
-                        'twitter': None,
+                        'mint_address': token_address,
+                        'token_symbol': metadata.get('symbol', 'Unknown'),
+                        'token_name': metadata.get('name', 'Unknown'),
+                        'decimals': data.get('tokenInfo', {}).get('decimals'),
+                        'icon_url': metadata.get('image'),
+                        'website': metadata.get('website'),
+                        'twitter': metadata.get('twitter'),
+                        'telegram': metadata.get('telegram'),
                         'market_cap_rank': None,
-                        'price_usdt': market.get('price'),
-                        'market_cap_fd': market.get('market_cap_fd'),
-                        'volume': market.get('volume24h'),
+                        'price_usdt': None,
+                        'market_cap_fd': None,
+                        'volume': None,
                         'coingecko_info': None,
                         'tag': None
                     }
-
                     return result
                 else:
-                    logger.info(f"No market data available for token: {token_address}")
+                    print(f"Error: No metadata available for token: {token_address}")
             else:
-                logger.error(f"Failed to fetch metadata, status code: {response.status}")
+                print(f"Error: Failed to fetch metadata, status code: {response.status}")
     except Exception as e:
-        logger.error(f"Exception occurred while fetching metadata for token {token_address} - {e}")
+        print(f"Error: Exception occurred while fetching metadata for token {token_address} - {e}")
     return None
 
 async def send_telegram_message(bot, chat_id, text, reply_markup):
@@ -71,26 +57,18 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
-    logger.info(f"Fetching transactions for address {address} with params: {params}")
-    try:
-        async with session.get(url, params=params, headers=headers) as response:
-            if response.status == 200:
-                data = await response.json()
-                logger.info(f"Response data for {address}: {data}")
-                if data.get('data') and data['data'][0]['signature'] != last_signature:
-                    transaction_data = data['data'][0]
-                    return {
-                        'signature': transaction_data['signature'],
-                        'token_address': transaction_data['tokenAddress'],
-                        'owner_address': transaction_data['owner'],
-                        'source_token': transaction_data.get('sourceToken', 'Unknown'),
-                        'ticker': transaction_data.get('symbol', 'Unknown')
-                    }
-            else:
-                logger.error(f"Failed to fetch transactions, status code: {response.status}")
-                logger.error(await response.text())  # Log the response text for more details
-    except Exception as e:
-        logger.error(f"Exception occurred while fetching transactions for address {address} - {e}")
+    async with session.get(url, params=params, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            if data.get('data') and data['data'][0]['signature'] != last_signature:
+                transaction_data = data['data'][0]
+                return {
+                    'signature': transaction_data['signature'],
+                    'token_address': transaction_data['tokenAddress'],
+                    'owner_address': transaction_data['owner'],
+                    'source_token': transaction_data.get('sourceToken', 'Unknown'),
+                    'ticker': transaction_data.get('symbol', 'Unknown')
+                }
     return None
 
 async def create_message(session, transactions):
@@ -100,7 +78,10 @@ async def create_message(session, transactions):
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
-        logger.info(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        if token_metadata:
+            print(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        else:
+            print(f"Error: Metadata for {transaction['token_address']} could not be retrieved")
 
         if not token_metadata:
             message_lines.append(
@@ -115,7 +96,7 @@ async def create_message(session, transactions):
         ticker = transaction['ticker']
 
         if token_symbol in EXCLUDED_SYMBOLS:
-            logger.info(f"Skipping excluded symbol: {token_symbol}")
+            print(f"Skipping excluded symbol: {token_symbol}")
             continue
 
         last_five_chars_owner = transaction['owner_address'][-5:]
@@ -123,19 +104,26 @@ async def create_message(session, transactions):
 
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> "
-            f"(<a href='https://t.me/share/url?url={safely_quote(transaction['token_address'])}'>{last_five_chars_token}</a>) | "
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> "
-            f"(<a href='https://t.me/share/url?url={safely_quote(transaction['owner_address'])}'>{last_five_chars_owner}</a>)\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>🔍 DexScreener</a>"
-            f" | <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
+            f"🤓 Solscan: <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Token</a> (-{last_five_chars_token}) "
+            f"- <a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-{last_five_chars_owner})\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
         )
 
-        buttons.append([InlineKeyboardButton(f"Copy CA {last_five_chars_token}", callback_data=f"copy_{transaction['token_address']}")])
-        buttons.append([InlineKeyboardButton(f"Copy Buyer Address {last_five_chars_owner}", callback_data=f"copy_{transaction['owner_address']}")])
+        if token_metadata.get('website'):
+            message_lines.append(f"🌐 Website: <a href='{token_metadata['website']}'>{token_metadata['website']}</a>\n")
+        if token_metadata.get('twitter'):
+            twitter_username = token_metadata['twitter'].rstrip('/').split('/')[-1]
+            message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{twitter_username}</a>\n")
+            message_lines.append(f"✒️ TweetScout: <a href='https://app.tweetscout.io/search?q={twitter_username}'>Check Score</a>\n")
+        if token_metadata.get('telegram'):
+            message_lines.append(f"✉️ Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
+
+        buttons.append([InlineKeyboardButton("Copy CA", callback_data=f"copy_{transaction['token_address']}")])
+        buttons.append([InlineKeyboardButton("Copy Buyer Address", callback_data=f"copy_{transaction['owner_address']}")])
 
     final_message = '\n'.join(message_lines)
-    logger.info(f"Final Message: {final_message}")
+    print(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
         reply_markup = InlineKeyboardMarkup(buttons)
@@ -146,30 +134,24 @@ async def create_message(session, transactions):
 async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer("Address copied!", show_alert=True)
-    address = query.data.split('_')[1]
-    await query.message.reply_text(f"Address: <code>{address}</code>", parse_mode='HTML')
+    address_type, address = query.data.split('_')[0], query.data.split('_')[1]
+    address_type_text = "Contract Address" if address_type == "copy" else "Buyer Address"
+    await query.message.reply_text(f"{address_type_text}: <code>{address}</code>", parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
         last_signature = {address: None for address in TARGET_ADDRESSES}
-        valid_addresses = [address for address in TARGET_ADDRESSES if is_valid_solana_address(address)]
-        if len(valid_addresses) < len(TARGET_ADDRESSES):
-            invalid_addresses = set(TARGET_ADDRESSES) - set(valid_addresses)
-            logger.error(f"Invalid Solana addresses found: {invalid_addresses}")
-
-        for address in valid_addresses:
+        for address in TARGET_ADDRESSES:
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
-                logger.info(f"Initial transaction details for {address}: {transaction_details}")
 
         while True:
             await asyncio.sleep(60)
-            for address in valid_addresses:
+            for address in TARGET_ADDRESSES:
                 transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction_details:
-                    logger.info(f"New transaction details for {address}: {transaction_details}")
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
                     message, reply_markup = await create_message(session, transactions)
