@@ -117,7 +117,7 @@ async def create_message(session, transactions):
             message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{twitter_username}</a>\n")
             message_lines.append(f"✒️ TweetScout: <a href='https://app.tweetscout.io/search?q={twitter_username}'>Check Score</a>\n")
         if token_metadata.get('telegram'):
-            message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
+            message_lines.append(f"✉️ Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
 
         buttons.append([InlineKeyboardButton("Copy CA", callback_data=f"copy_{transaction['token_address']}")])
         buttons.append([InlineKeyboardButton("Copy Buyer Address", callback_data=f"copy_{transaction['owner_address']}")])
