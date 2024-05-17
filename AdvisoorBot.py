@@ -3,9 +3,9 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ContextTypes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +20,13 @@ TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
 EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+def is_valid_solana_address(address):
+    try:
+        base58.b58decode(address)
+        return True
+    except ValueError:
+        return False
 
 async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
@@ -86,11 +93,13 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 
 async def create_message(session, transactions):
     message_lines = ["📝 Advisoor Trade 🔮\n"]
+    buttons = []
+
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        
+
         logger.info(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
-        
+
         if not token_metadata:
             message_lines.append(
                 f"🔫 LP Sniping Opportunity 🔫\n\n"
@@ -98,7 +107,7 @@ async def create_message(session, transactions):
                 f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
             continue
-        
+
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
         ticker = transaction['ticker']
@@ -106,54 +115,59 @@ async def create_message(session, transactions):
         if token_symbol in EXCLUDED_SYMBOLS:
             logger.info(f"Skipping excluded symbol: {token_symbol}")
             continue
-        
+
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
-        
+
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-{last_five_chars_token}) | "
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-{last_five_chars_owner})\n"
+            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> "
+            f"(<a href='https://t.me/share/url?url={safely_quote(transaction['token_address'])}'>{last_five_chars_token}</a>) | "
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> "
+            f"(<a href='https://t.me/share/url?url={safely_quote(transaction['owner_address'])}'>{last_five_chars_owner}</a>)\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>🔍 DexScreener</a>"
             f" | <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
         )
+
+        buttons.append([InlineKeyboardButton(f"Copy CA {last_five_chars_token}", callback_data=f"copy_{transaction['token_address']}")])
+        buttons.append([InlineKeyboardButton(f"Copy Buyer Address {last_five_chars_owner}", callback_data=f"copy_{transaction['owner_address']}")])
 
     final_message = '\n'.join(message_lines)
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
-        keyboard = [
-            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
-             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
-             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        reply_markup = InlineKeyboardMarkup(buttons)
         return final_message, reply_markup
     else:
         return None, None
+
+async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer("Address copied!", show_alert=True)
+    address_type, address = query.data.split('_')[0], query.data.split('_')[1]
+    address_type_text = "Contract Address" if address_type == "copy" else "Buyer Address"
+    await query.message.reply_text(f"{address_type_text}: <code>{address}</code>", parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
         last_signature = {address: None for address in TARGET_ADDRESSES}
-        for address in TARGET_ADDRESSES:
+        valid_addresses = [address for address in TARGET_ADDRESSES if is_valid_solana_address(address)]
+        if len(valid_addresses) < len(TARGET_ADDRESSES):
+            invalid_addresses = set(TARGET_ADDRESSES) - set(valid_addresses)
+            logger.error(f"Invalid Solana addresses found: {invalid_addresses}")
+
+        for address in valid_addresses:
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
 
         while True:
             await asyncio.sleep(60)
-            for address in TARGET_ADDRESSES:
+            for address in valid_addresses:
                 transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction_details:
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
                     message, reply_markup = await create_message(session, transactions)
-                    if message:
-                        await send_telegram_message(bot, CHAT_ID, message, reply_markup)
-                    last_signature[address] = new_signature
-
-if __name__ == "__main__":
-    asyncio.run(main())
+  
