@@ -106,8 +106,8 @@ async def create_message(session, transactions):
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
         )
 
         if token_metadata.get('website'):
@@ -115,7 +115,7 @@ async def create_message(session, transactions):
         if token_metadata.get('twitter'):
             twitter_username = token_metadata['twitter'].rstrip('/').split('/')[-1]
             message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{twitter_username}</a>\n")
-            message_lines.append(f"<a href='https://app.tweetscout.io/search?q={twitter_username}'>TweetScout</a>\n")
+            message_lines.append(f"<a href='https://app.tweetscout.io/search?q={twitter_username}'>📝 TweetScout</a>\n")
         if token_metadata.get('telegram'):
             message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
 
