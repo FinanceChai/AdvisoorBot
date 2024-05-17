@@ -98,8 +98,8 @@ async def create_message(session, transactions):
             f"Ticker: {ticker}\n"
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
+            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
         )
 
         if token_metadata.get('website'):
