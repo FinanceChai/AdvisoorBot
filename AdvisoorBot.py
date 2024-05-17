@@ -78,8 +78,9 @@ async def create_message(session, transactions):
         
         if not token_metadata:
             message_lines.append(
-                f"LP Sniping Opportunity 🔫"
+                f"🔫 LP Sniping Opportunity 🔫\n\n"
                 f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
+                f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
             continue
         
@@ -93,19 +94,14 @@ async def create_message(session, transactions):
         
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
-
         
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> -{last_five_chars_token}\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> -{last_five_chars_owner}\n"
+            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract Address</a> (-{last_five_chars_token})\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Owner Wallet</a> (-{last_five_chars_owner})\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener</a>\n"
-            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
+            f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
         )
-        
-        twitter_handle = token_metadata.get('twitter')
-        if twitter_handle:
-            message_lines.append(f"<a href='https://twitter.com/{safely_quote(twitter_handle)}'>Twitter</a>\n")
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
