@@ -2,10 +2,11 @@ import os
 import asyncio
 import aiohttp
 import logging
+import base58
 from dotenv import load_dotenv
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
-from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -144,9 +145,8 @@ async def create_message(session, transactions):
 async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer("Address copied!", show_alert=True)
-    address_type, address = query.data.split('_')[0], query.data.split('_')[1]
-    address_type_text = "Contract Address" if address_type == "copy" else "Buyer Address"
-    await query.message.reply_text(f"{address_type_text}: <code>{address}</code>", parse_mode='HTML')
+    address = query.data.split('_')[1]
+    await query.message.reply_text(f"Address: <code>{address}</code>", parse_mode='HTML')
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
@@ -176,4 +176,4 @@ async def main():
 
 if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(handle_copy))
-    asyncio.run(main())
+    application.run_polling()
