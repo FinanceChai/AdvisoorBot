@@ -115,9 +115,9 @@ async def create_message(session, transactions):
         if token_metadata.get('telegram'):
             message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
         
-        keyboard = [
-            [InlineKeyboardButton("Click to Copy Token Address", callback_data=f"copy_{transaction['token_address']}")]
-        ]
+        message_lines.append(
+            f"<a href='https://t.me/share/url?url={transaction['token_address']}&text=Copy%20Token%20Address'>Click to Copy Token Address</a>"
+        )
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
@@ -130,7 +130,7 @@ async def create_message(session, transactions):
              InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
         ]
 
-        main_reply_markup = InlineKeyboardMarkup(main_keyboard + keyboard)
+        main_reply_markup = InlineKeyboardMarkup(main_keyboard)
         return final_message, main_reply_markup
     else:
         return None, None
