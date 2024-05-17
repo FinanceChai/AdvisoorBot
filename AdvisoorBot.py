@@ -20,8 +20,8 @@ async def fetch_token_metadata(session, token_address):
     url = f"https://pro-api.solscan.io/v1.0/account/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     try:
+        print(f"Fetching metadata for {token_address}")
         async with session.get(url, headers=headers) as response:
-            print(f"Fetching metadata for {token_address}")
             if response.status == 200:
                 data = await response.json()
                 if 'metadata' in data and 'data' in data['metadata']:
@@ -185,4 +185,5 @@ async def main():
 
 if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(handle_copy))
+    print("Starting bot polling")
     application.run_polling()
