@@ -2,9 +2,9 @@ import os
 import asyncio
 import aiohttp
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 load_dotenv()
 
@@ -114,22 +114,32 @@ async def create_message(session, transactions):
             message_lines.append(f"🐦 Twitter: <a href='{token_metadata['twitter']}'>{token_metadata['twitter']}</a>\n")
         if token_metadata.get('telegram'):
             message_lines.append(f"📣 Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
+        
+        keyboard = [
+            [InlineKeyboardButton("Click to Copy Token Address", callback_data=f"copy_{transaction['token_address']}")]
+        ]
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
-        keyboard = [
+        main_keyboard = [
             [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
              InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
             [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
              InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
         ]
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        return final_message, reply_markup
+        main_reply_markup = InlineKeyboardMarkup(main_keyboard + keyboard)
+        return final_message, main_reply_markup
     else:
         return None, None
+
+async def handle_copy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    token_address = query.data.split('_')[1]
+    await query.message.reply_text(f"Token Address: {token_address}")
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
@@ -153,4 +163,5 @@ async def main():
                     last_signature[address] = new_signature
 
 if __name__ == "__main__":
+    application.add_handler(CallbackQueryHandler(handle_copy))
     asyncio.run(main())
