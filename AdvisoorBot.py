@@ -17,33 +17,32 @@ EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
 async def fetch_token_metadata(session, token_address):
-    url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
+    url = f"https://pro-api.solscan.io/v1.0/account/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     async with session.get(url, headers=headers) as response:
         if response.status == 200:
             data = await response.json()
-            if 'markets' in data and data['markets']:
-                market = data['markets'][0]  # Assuming you want the first market listed
-
+            if 'metadata' in data and 'data' in data['metadata']:
+                metadata = data['metadata']['data']
                 result = {
-                    'mint_address': market.get('base', {}).get('address'),
-                    'token_symbol': market.get('base', {}).get('symbol'),
-                    'token_name': market.get('base', {}).get('name'),
-                    'decimals': market.get('base', {}).get('decimals'),
-                    'icon_url': market.get('base', {}).get('icon'),
-                    'website': None,
-                    'twitter': None,
+                    'mint_address': token_address,
+                    'token_symbol': metadata.get('symbol', 'Unknown'),
+                    'token_name': metadata.get('name', 'Unknown'),
+                    'decimals': data.get('tokenInfo', {}).get('decimals'),
+                    'icon_url': metadata.get('image'),
+                    'website': metadata.get('website'),
+                    'twitter': metadata.get('twitter'),
+                    'telegram': metadata.get('telegram'),
                     'market_cap_rank': None,
-                    'price_usdt': market.get('price'),
-                    'market_cap_fd': market.get('market_cap_fd'),
-                    'volume': market.get('volume24h'),
+                    'price_usdt': None,
+                    'market_cap_fd': None,
+                    'volume': None,
                     'coingecko_info': None,
                     'tag': None
                 }
-
                 return result
             else:
-                print(f"No market data available for token: {token_address}")
+                print(f"No metadata available for token: {token_address}")
         else:
             print(f"Failed to fetch metadata, status code: {response.status}")
     return None
@@ -102,6 +101,13 @@ async def create_message(session, transactions):
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener🔍 | </a>"
             f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck✅</a>\n"
         )
+
+        if token_metadata.get('website'):
+            message_lines.append(f"🌐 Website: <a href='{token_metadata['website']}'>{token_metadata['website']}</a>\n")
+        if token_metadata.get('twitter'):
+            message_lines.append(f"🐥 Twitter: <a href='{token_metadata['twitter']}'>{token_metadata['twitter']}</a>\n")
+        if token_metadata.get('telegram'):
+            message_lines.append(f"✉️ Telegram: <a href='{token_metadata['telegram']}'>{token_metadata['telegram']}</a>\n")
 
     final_message = '\n'.join(message_lines)
     print(f"Final Message: {final_message}")
