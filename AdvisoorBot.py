@@ -112,7 +112,7 @@ async def create_message(session, transactions):
         
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-{last_five_chars_token} | )\n"
+            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-{last_five_chars_token} | )"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-{last_five_chars_owner})\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexScreener 🔍 | </a>"
             f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck ✅</a>\n"
