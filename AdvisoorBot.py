@@ -93,10 +93,17 @@ async def create_message(session, transactions):
         
         if not token_metadata:
             message_lines.append(
-                f"🔫 LP Sniping Opportunity 🔫\n\n"
+                f"🔫 LP Sniping Opportunity 🔫\n"
+                f"⚠️ WARNING - LP sniping requires specific software to execute, check out the Pepeboost bot below!\n\n"
                 f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
                 f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
+
+                if len(message_lines) > 1:
+            keyboard = [
+            [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
+            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
+             ]
             continue
         
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
@@ -125,7 +132,7 @@ async def create_message(session, transactions):
         keyboard = [
             [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
              InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
+            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
              InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
         ]
 
