@@ -91,7 +91,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 
 async def create_message(session, transactions):
     logger.info("Creating message for transactions")
-    message_lines = [""]
+    message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
@@ -131,8 +131,9 @@ async def create_message(session, transactions):
 
     if len(message_lines) > 1:
         keyboard = [
-            [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
-            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
+            [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
+            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp")],
+            [InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
         ]
         return final_message, InlineKeyboardMarkup(keyboard)
     else:
