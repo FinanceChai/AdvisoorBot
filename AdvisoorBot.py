@@ -121,6 +121,14 @@ async def create_message(session, transactions):
         )
 
     final_message = '\n'.join(message_lines)
+
+        if len(message_lines) > 1:
+        keyboard = [
+            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
+             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
+            [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
+             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
+        ]
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
