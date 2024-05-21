@@ -88,9 +88,9 @@ async def create_message(session, transactions):
     message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
-        
+
         logger.info(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
-        
+
         if not token_metadata:
             message_lines.append(
                 f"🔫 LP Sniping Opportunity 🔫\n"
@@ -98,14 +98,8 @@ async def create_message(session, transactions):
                 f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
                 f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
-
-                if len(message_lines) > 1:
-            keyboard = [
-            [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
-             ]
             continue
-        
+
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
         token_name = token_metadata.get('token_name', 'Unknown')
         ticker = transaction['ticker']
@@ -113,10 +107,10 @@ async def create_message(session, transactions):
         if token_symbol in EXCLUDED_SYMBOLS:
             logger.info(f"Skipping excluded symbol: {token_symbol}")
             continue
-        
+
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
-        
+
         message_lines.append(
             f"Ticker: {ticker}\n"
             f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-{last_five_chars_token}) | "
