@@ -120,9 +120,9 @@ async def create_message(session, transactions):
         # Here, we use a mailto link as a workaround to let the user copy the address
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-<a href='mailto:?body={transaction['token_address']}'>{last_five_chars_token}</a>) | "
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-<a href='mailto:?body={transaction['owner_address']}'>{last_five_chars_owner}</a>)\n"
-            f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>🔍 DexScreener</a>"
+            f"Addresses - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-<a href='mailto:?body={transaction['token_address']}'>{last_five_chars_token}</a>) | "
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer</a> (-<a href='mailto:?body={transaction['owner_address']}'>{last_five_chars_owner}</a>)\n"
+            f"Checks - <a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>DexS</a>"
             f" | <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
         )
 
