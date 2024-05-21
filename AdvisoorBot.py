@@ -66,7 +66,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     logger.info(f"Fetching transactions with params: {params}")
     try:
         async with session.get(url, params=params, headers=headers) as response:
-            if response.status == 200:
+            if response.status == 200):
                 data = await response.json()
                 if data.get('data') and data['data'][0]['signature'] != last_signature:
                     transaction_data = data['data'][0]
@@ -85,7 +85,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     return None
 
 async def create_message(session, transactions):
-    message_lines = [""]
+    message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
@@ -121,18 +121,16 @@ async def create_message(session, transactions):
         )
 
     final_message = '\n'.join(message_lines)
-
-        if len(message_lines) > 1:
-        keyboard = [
-            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
-             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
-            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
-             ]
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
-        return final_message, None
+        keyboard = [
+            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
+             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
+            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
+             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
+        ]
+        return final_message, InlineKeyboardMarkup(keyboard)
     else:
         return None, None
 
