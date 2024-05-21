@@ -127,8 +127,8 @@ async def create_message(session, transactions):
             [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
              InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
             [InlineKeyboardButton("Bonkbot", url="https://t.me/bonkbot_bot?start=ref_al2no"),
-             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
-        ]
+            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
+             ]
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
