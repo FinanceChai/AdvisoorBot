@@ -66,7 +66,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     logger.info(f"Fetching transactions with params: {params}")
     try:
         async with session.get(url, params=params, headers=headers) as response:
-            if response.status == 200):
+            if response.status == 200:
                 data = await response.json()
                 if data.get('data') and data['data'][0]['signature'] != last_signature:
                     transaction_data = data['data'][0]
@@ -150,10 +150,4 @@ async def main():
                 if transaction_details:
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
-                    message, reply_markup = await create_message(session, transactions)
-                    if message:
-                        await send_telegram_message(bot, CHAT_ID, message, reply_markup)
-                    last_signature[address] = new_signature
-
-if __name__ == "__main__":
-    asyncio.run(main())
+         
