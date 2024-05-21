@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
 from urllib.parse import quote as safely_quote
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -22,6 +22,7 @@ EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
 async def fetch_token_metadata(session, token_address):
+    logger.info(f"Fetching token metadata for: {token_address}")
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     try:
@@ -47,6 +48,7 @@ async def fetch_token_metadata(session, token_address):
                         'tag': None
                     }
 
+                    logger.info(f"Token metadata fetched: {result}")
                     return result
                 else:
                     logger.info(f"No market data available for token: {token_address}")
@@ -57,26 +59,29 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 async def send_telegram_message(bot, chat_id, text, reply_markup=None):
+    logger.info(f"Sending message to chat_id {chat_id}")
     await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=reply_markup)
 
 async def fetch_last_spl_transactions(session, address, last_signature):
+    logger.info(f"Fetching last SPL transactions for address: {address} with last_signature: {last_signature}")
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
-    logger.info(f"Fetching transactions with params: {params}")
     try:
         async with session.get(url, params=params, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
                 if data.get('data') and data['data'][0]['signature'] != last_signature:
                     transaction_data = data['data'][0]
-                    return {
+                    result = {
                         'signature': transaction_data['signature'],
                         'token_address': transaction_data['tokenAddress'],
                         'owner_address': transaction_data['owner'],
                         'source_token': transaction_data.get('sourceToken', 'Unknown'),
                         'ticker': transaction_data.get('symbol', 'Unknown')
                     }
+                    logger.info(f"Transaction data fetched: {result}")
+                    return result
             else:
                 logger.error(f"Failed to fetch transactions, status code: {response.status}")
                 logger.error(await response.text())  # Log the response text for more details
@@ -85,6 +90,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     return None
 
 async def create_message(session, transactions):
+    logger.info("Creating message for transactions")
     message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
@@ -135,19 +141,30 @@ async def create_message(session, transactions):
         return None, None
 
 async def main():
+    logger.info("Starting bot")
     bot = Bot(token=TELEGRAM_TOKEN)
     async with aiohttp.ClientSession() as session:
         last_signature = {address: None for address in TARGET_ADDRESSES}
         for address in TARGET_ADDRESSES:
+            logger.info(f"Fetching initial transactions for address: {address}")
             transaction_details = await fetch_last_spl_transactions(session, address, None)
             if transaction_details:
                 last_signature[address] = transaction_details['signature']
+                logger.info(f"Initial transaction details for {address}: {transaction_details}")
 
         while True:
             await asyncio.sleep(60)
             for address in TARGET_ADDRESSES:
+                logger.info(f"Fetching new transactions for address: {address}")
                 transaction_details = await fetch_last_spl_transactions(session, address, last_signature[address])
                 if transaction_details:
                     new_signature = transaction_details['signature']
                     transactions = [transaction_details]
-         
+                    message, reply_markup = await create_message(session, transactions)
+                    if message:
+                        await send_telegram_message(bot, CHAT_ID, message, reply_markup)
+                    last_signature[address] = new_signature
+                    logger.info(f"Updated last signature for {address} to {new_signature}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
