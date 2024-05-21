@@ -3,9 +3,9 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from urllib.parse import quote as safely_quote
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -56,7 +56,7 @@ async def fetch_token_metadata(session, token_address):
         logger.error(f"Exception occurred while fetching metadata for token {token_address} - {e}")
     return None
 
-async def send_telegram_message(bot, chat_id, text, reply_markup):
+async def send_telegram_message(bot, chat_id, text, reply_markup=None):
     await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=reply_markup)
 
 async def fetch_last_spl_transactions(session, address, last_signature):
@@ -85,7 +85,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
     return None
 
 async def create_message(session, transactions):
-    message_lines = [""]
+    message_lines = ["📝 Advisoor Trade 🔮\n"]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
@@ -111,10 +111,11 @@ async def create_message(session, transactions):
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
 
+        # Here, we use a mailto link as a workaround to let the user copy the address
         message_lines.append(
             f"Ticker: {ticker}\n"
-            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-{last_five_chars_token}) | "
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-{last_five_chars_owner})\n"
+            f"🤓 Solscan - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-<a href='mailto:?body={transaction['token_address']}'>{last_five_chars_token}</a>) | "
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet</a> (-<a href='mailto:?body={transaction['owner_address']}'>{last_five_chars_owner}</a>)\n"
             f"<a href='https://dexscreener.com/search?q={safely_quote(transaction['token_address'])}'>🔍 DexScreener</a>"
             f" | <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
         )
@@ -123,15 +124,7 @@ async def create_message(session, transactions):
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
-        keyboard = [
-            [InlineKeyboardButton("Trojan", url="https://t.me/solana_trojanbot?start=r-0xrubberd319503"),
-             InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd")],
-            [InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
-             InlineKeyboardButton("BananaGun", url="HTTPS://T.ME/BANANAGUNSNIPER_BOT?START=REF_RUBBERD")]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        return final_message, reply_markup
+        return final_message, None
     else:
         return None, None
 
