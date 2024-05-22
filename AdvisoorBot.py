@@ -3,8 +3,7 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
-from urllib.parse import quote as safely_quote
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # Set up logging
@@ -127,9 +126,11 @@ async def create_message(session, transactions):
     logger.info(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
+        token_address = transactions[0]['token_address']
         keyboard = [
             [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
-            InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp")]
+             InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
+             InlineKeyboardButton("Scan Token 🛡️", url=f"https://t.me/ManjusriBot?start={safely_quote(token_address)}")]
         ]
         return final_message, InlineKeyboardMarkup(keyboard)
     else:
