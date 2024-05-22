@@ -91,7 +91,7 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 
 async def create_message(session, transactions):
     logger.info("Creating message for transactions")
-    message_lines = ["📝 Advisoor Trade 🔮\n"]
+    message_lines = [""]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
@@ -100,9 +100,9 @@ async def create_message(session, transactions):
         if not token_metadata:
             message_lines.append(
                 f"🔫 LP Sniping Opportunity 🔫\n"
-                f"⚠️ WARNING - LP sniping requires specific software to execute, check out the Pepeboost bot below!\n\n"
-                f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Go to Contract Address</a>\n"
-                f"<a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
+                f"⚠️ WARNING - This token has no liquidity today for a spot trade.\nLP sniping requires specific software to execute, check out the Pepeboost bot below!\n\n"
+                f"--- <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Check Contract Address</a>\n"
+                f"--- <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
             )
             continue
 
@@ -122,8 +122,6 @@ async def create_message(session, transactions):
             f"Ticker: {ticker}\n"
             f"Addresses - <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Contract</a> (-<a href='mailto:?body={transaction['token_address']}'>{last_five_chars_token}</a>) | "
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer</a> (-<a href='mailto:?body={transaction['owner_address']}'>{last_five_chars_owner}</a>)\n"
-            f"Checks - <a href='https://dexscreener.com/solana/{safely_quote(transaction['token_address'])}?'>DexS</a>"
-            f" | <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n"
         )
 
     final_message = '\n'.join(message_lines)
