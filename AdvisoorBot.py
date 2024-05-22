@@ -119,7 +119,7 @@ async def create_message(session, transactions):
         # Here, we use a mailto link as a workaround to let the user copy the address
         message_lines.append(
             f"Ticker: {ticker} | <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>CA - ({last_five_chars_token})</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet {last_five_chars_owner}</a> (-<a href='mailto:?body={transaction['owner_address']}'></a>)\n"
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet {last_five_chars_owner}</a>\n"
         )
 
     final_message = '\n'.join(message_lines)
