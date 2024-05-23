@@ -3,11 +3,11 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import ApplicationBuilder
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG, handlers=[logging.StreamHandler()])
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -20,8 +20,11 @@ EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
 
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
+def safely_quote(text):
+    return text.replace(" ", "%20")
+
 async def fetch_token_metadata(session, token_address):
-    logger.info(f"Fetching token metadata for: {token_address}")
+    logger.debug(f"Fetching token metadata for: {token_address}")
     url = f"https://pro-api.solscan.io/v1.0/market/token/{safely_quote(token_address)}"
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     try:
@@ -29,7 +32,7 @@ async def fetch_token_metadata(session, token_address):
             if response.status == 200:
                 data = await response.json()
                 if 'markets' in data and data['markets']:
-                    market = data['markets'][0]  # Assuming you want the first market listed
+                    market = data['markets'][0]
 
                     result = {
                         'mint_address': market.get('base', {}).get('address'),
@@ -47,7 +50,7 @@ async def fetch_token_metadata(session, token_address):
                         'tag': None
                     }
 
-                    logger.info(f"Token metadata fetched: {result}")
+                    logger.debug(f"Token metadata fetched: {result}")
                     return result
                 else:
                     logger.info(f"No market data available for token: {token_address}")
@@ -58,11 +61,11 @@ async def fetch_token_metadata(session, token_address):
     return None
 
 async def send_telegram_message(bot, chat_id, text, reply_markup=None):
-    logger.info(f"Sending message to chat_id {chat_id}")
+    logger.debug(f"Sending message to chat_id {chat_id}")
     await bot.send_message(chat_id, text=text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=reply_markup)
 
 async def fetch_last_spl_transactions(session, address, last_signature):
-    logger.info(f"Fetching last SPL transactions for address: {address} with last_signature: {last_signature}")
+    logger.debug(f"Fetching last SPL transactions for address: {address} with last_signature: {last_signature}")
     params = {'account': address, 'limit': 1, 'offset': 0}
     headers = {'accept': '*/*', 'token': SOLSCAN_API_KEY}
     url = 'https://pro-api.solscan.io/v1.0/account/splTransfers'
@@ -79,22 +82,22 @@ async def fetch_last_spl_transactions(session, address, last_signature):
                         'source_token': transaction_data.get('sourceToken', 'Unknown'),
                         'ticker': transaction_data.get('symbol', 'Unknown')
                     }
-                    logger.info(f"Transaction data fetched: {result}")
+                    logger.debug(f"Transaction data fetched: {result}")
                     return result
             else:
                 logger.error(f"Failed to fetch transactions, status code: {response.status}")
-                logger.error(await response.text())  # Log the response text for more details
+                logger.error(await response.text())
     except Exception as e:
         logger.error(f"Exception occurred while fetching transactions for address {address} - {e}")
     return None
 
 async def create_message(session, transactions):
-    logger.info("Creating message for transactions")
+    logger.debug("Creating message for transactions")
     message_lines = [""]
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
-        logger.info(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
+        logger.debug(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
 
         if not token_metadata:
             message_lines.append(
@@ -116,14 +119,13 @@ async def create_message(session, transactions):
         last_five_chars_owner = transaction['owner_address'][-5:]
         last_five_chars_token = transaction['token_address'][-5:]
 
-        # Here, we use a mailto link as a workaround to let the user copy the address
         message_lines.append(
             f"Ticker: {ticker} | <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>CA - ({last_five_chars_token})</a>\n"
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet {last_five_chars_owner}</a>\n"
         )
 
     final_message = '\n'.join(message_lines)
-    logger.info(f"Final Message: {final_message}")
+    logger.debug(f"Final Message: {final_message}")
 
     if len(message_lines) > 1:
         token_address = transactions[0]['token_address']
