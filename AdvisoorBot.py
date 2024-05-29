@@ -125,6 +125,11 @@ async def create_message(session, transactions):
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet - ({last_five_chars_owner})</a>"
         )
 
+    # Append the contract address at the bottom of the message
+    if transactions:
+        token_address = transactions[0]['token_address']
+        message_lines.append(f"\n<b>Contract Address:</b> <code>{token_address}</code>")
+
     final_message = '\n'.join(message_lines)
     logger.debug(f"Final Message: {final_message}")
 
@@ -133,7 +138,7 @@ async def create_message(session, transactions):
         keyboard = [
             [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
              InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
-             InlineKeyboardButton("Scan Token 🛡️", url=f"https://t.me/ManjusriBot?start={safely_quote(token_address)}")]
+             InlineKeyboardButton("Scan Token 🛡️", url=f"https://t.me/ManjusriBot?start=search_{token_address}")]
         ]
         return final_message, InlineKeyboardMarkup(keyboard)
     else:
