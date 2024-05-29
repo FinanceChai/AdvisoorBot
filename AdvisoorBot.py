@@ -175,4 +175,4 @@ async def main():
 
 if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(handle_scan_token))
-    asyncio.run(main())
+    application.run_polling()
