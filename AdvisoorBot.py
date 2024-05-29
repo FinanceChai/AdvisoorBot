@@ -120,8 +120,9 @@ async def create_message(session, transactions):
         last_five_chars_token = transaction['token_address'][-5:]
 
         message_lines.append(
-            f"Ticker: {ticker} | <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>CA - ({last_five_chars_token})</a>\n"
-            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet {last_five_chars_owner}</a>\n"
+            f"Ticker: {ticker}\n" 
+            f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>CA - ({last_five_chars_token})</a> | "
+            f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet - ({last_five_chars_owner})</a>"
         )
 
     final_message = '\n'.join(message_lines)
