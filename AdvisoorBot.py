@@ -3,8 +3,8 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
+from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, MessageHandler, CallbackContext, filters
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, handlers=[logging.StreamHandler()])
@@ -133,11 +133,19 @@ async def create_message(session, transactions):
         keyboard = [
             [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
              InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
-             InlineKeyboardButton("Scan Token 🛡️", url=f"https://t.me/ManjusriBot?start={safely_quote(token_address)}")]
+             InlineKeyboardButton("Scan Token 🛡️", callback_data=f"search_{token_address}")]
         ]
         return final_message, InlineKeyboardMarkup(keyboard)
     else:
         return None, None
+
+async def handle_scan_token(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query_data = query.data
+    if query_data.startswith("search_"):
+        token_address = query_data.split("_")[1]
+        await query.message.reply_text(f"/search {token_address}")
+        await query.answer()
 
 async def main():
     logger.info("Starting bot")
@@ -166,4 +174,5 @@ async def main():
                     logger.info(f"Updated last signature for {address} to {new_signature}")
 
 if __name__ == "__main__":
+    application.add_handler(CallbackQueryHandler(handle_scan_token))
     asyncio.run(main())
