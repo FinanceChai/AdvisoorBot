@@ -125,11 +125,6 @@ async def create_message(session, transactions):
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet - ({last_five_chars_owner})</a>"
         )
 
-    # Append the contract address at the bottom of the message
-    if transactions:
-        token_address = transactions[0]['token_address']
-        message_lines.append(f"\n<b>Contract Address:</b> <code>{token_address}</code>")
-
     final_message = '\n'.join(message_lines)
     logger.debug(f"Final Message: {final_message}")
 
