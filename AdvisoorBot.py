@@ -94,18 +94,14 @@ async def fetch_last_spl_transactions(session, address, last_signature):
 async def create_message(session, transactions):
     logger.debug("Creating message for transactions")
     message_lines = [""]
+    valid_transactions = []
+
     for transaction in transactions:
         token_metadata = await fetch_token_metadata(session, transaction['token_address'])
 
         logger.debug(f"Fetched Metadata for {transaction['token_address']}: {token_metadata}")
 
         if not token_metadata:
-            message_lines.append(
-                f"🔫 LP Sniping Opportunity 🔫\n"
-                f"⚠️ WARNING - This token has no liquidity today for a spot trade.\nLP sniping requires specific software to execute, check out the Pepeboost bot below!\n\n"
-                f"--- <a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>Check Contract Address</a>\n"
-                f"--- <a href='https://rugcheck.xyz/tokens/{safely_quote(transaction['token_address'])}'>RugCheck</a>\n\n"
-            )
             continue
 
         token_symbol = token_metadata.get('token_symbol', 'Unknown')
@@ -124,12 +120,17 @@ async def create_message(session, transactions):
             f"<a href='https://solscan.io/token/{safely_quote(transaction['token_address'])}'>CA - ({last_five_chars_token})</a> | "
             f"<a href='https://solscan.io/account/{safely_quote(transaction['owner_address'])}'>Buyer Wallet - ({last_five_chars_owner})</a>"
         )
+        valid_transactions.append(transaction)
 
+    if valid_transactions:
+        token_address = valid_transactions[0]['token_address']
+        message_lines.append(f"\n<b>Contract Address:</b> <code>{token_address}</code>")
+    
     final_message = '\n'.join(message_lines)
     logger.debug(f"Final Message: {final_message}")
 
-    if len(message_lines) > 1:
-        token_address = transactions[0]['token_address']
+    if valid_transactions:
+        token_address = valid_transactions[0]['token_address']
         keyboard = [
             [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
              InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp"),
