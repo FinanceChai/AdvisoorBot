@@ -16,7 +16,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 SOLSCAN_API_KEY = os.getenv('SOLSCAN_API_KEY')
 TARGET_ADDRESSES = os.getenv('TARGET_ADDRESS', '').split(',')
-EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk"}  # Add or modify as necessary
+EXCLUDED_SYMBOLS = {"ETH", "BTC", "BONK", "Bonk", "SOL"}  # Add or modify as necessary
 
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
