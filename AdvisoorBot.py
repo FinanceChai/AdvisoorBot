@@ -133,7 +133,7 @@ async def create_message(session, transactions):
         token_address = valid_transactions[0]['token_address']
         keyboard = [
             [InlineKeyboardButton("Photon", url="https://photon-sol.tinyastro.io/@rubberd"),
-             InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp")]
+             InlineKeyboardButton("Pepeboost 🐸", url="https://t.me/pepeboost_sol07_bot?start=ref_01inkp")]]
         return final_message, InlineKeyboardMarkup(keyboard)
     else:
         return None, None
