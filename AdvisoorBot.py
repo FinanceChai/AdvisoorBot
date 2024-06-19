@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import logging
 from dotenv import load_dotenv
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import ApplicationBuilder
 
 # Set up logging
